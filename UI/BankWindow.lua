@@ -64,11 +64,23 @@ local function slotOnLeave()
     if GameTooltip then GameTooltip:Hide() end
 end
 
+local function linkInChat(link)
+    if type(ChatEdit_InsertLink) == "function" then
+        local ok, inserted = pcall(ChatEdit_InsertLink, link)
+        if ok and inserted then return end
+    end
+    -- No chat box open: open one with the link, so shift-click always works
+    -- (the real bank uses shift-click to split stacks instead).
+    local open = ChatFrame_OpenChat or (ChatFrameUtil and ChatFrameUtil.OpenChat)
+    if type(open) == "function" then pcall(open, link) end
+end
+
 local function slotOnClick(self)
-    -- Shift-click links the item in chat, ctrl-click previews it: the same
-    -- modified clicks the real bank accepts. Plain clicks do nothing, the
-    -- items are not really here.
-    if self.link and type(HandleModifiedItemClick) == "function" then
+    -- Plain clicks do nothing: the items are not really here.
+    if not self.link then return end
+    if type(IsShiftKeyDown) == "function" and IsShiftKeyDown() then
+        linkInChat(self.link)
+    elseif type(HandleModifiedItemClick) == "function" then
         pcall(HandleModifiedItemClick, self.link)
     end
 end
@@ -235,8 +247,8 @@ local function create()
 
     local divider = frame:CreateTexture(nil, "ARTWORK")
     setAtlas(divider, "bank-divider")
-    divider:SetPoint("TOPLEFT", frame, "TOPLEFT", 40, SLOT_TOP - ROWS * (SLOT_SIZE + SLOT_GAP_Y) - 4)
-    divider:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -30, SLOT_TOP - ROWS * (SLOT_SIZE + SLOT_GAP_Y) - 4)
+    divider:SetPoint("TOPLEFT", frame, "TOPLEFT", 32, SLOT_TOP - ROWS * (SLOT_SIZE + SLOT_GAP_Y) + 1)
+    divider:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -35, SLOT_TOP - ROWS * (SLOT_SIZE + SLOT_GAP_Y) + 1)
     divider:SetHeight(16)
 
     local scanned = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -249,9 +261,28 @@ local function create()
     empty:SetWidth(WIDTH - 120)
     frame.empty = empty
 
-    local money = frame:CreateFontString(nil, "OVERLAY", "NumberFontNormalRight")
-    money:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -12, 9)
-    frame.money = money
+    -- The template's border is a child frame drawn over the parent's own
+    -- regions, so the money box needs a frame of its own above it.
+    local footer = CreateFrame("Frame", nil, frame)
+    footer:SetFrameLevel(frame:GetFrameLevel() + 10)
+    footer:SetSize(180, 25)
+    footer:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -3, 3)
+    local okEdge, edge = pcall(CreateFrame, "Frame", nil, footer, "ThinGoldEdgeTemplate")
+    if okEdge and edge then
+        edge:SetSize(178, 19)
+        edge:SetPoint("LEFT", footer, "LEFT", 0, 0)
+    end
+    local okMoney, moneyFrame = pcall(CreateFrame, "Frame", FRAME_NAME .. "Money", footer, "SmallMoneyFrameTemplate")
+    if okMoney and moneyFrame and type(MoneyFrame_Update) == "function" then
+        moneyFrame:SetPoint("RIGHT", footer, "RIGHT", 0, 0)
+        -- STATIC: show the saved amount, not the live money of whoever is logged in.
+        if type(MoneyFrame_SetType) == "function" then pcall(MoneyFrame_SetType, moneyFrame, "STATIC") end
+        frame.moneyFrame = moneyFrame
+    else
+        local money = footer:CreateFontString(nil, "OVERLAY", "NumberFontNormalRight")
+        money:SetPoint("RIGHT", footer, "RIGHT", -8, 0)
+        frame.money = money
+    end
 
     if type(UISpecialFrames) == "table" then UISpecialFrames[#UISpecialFrames + 1] = FRAME_NAME end
     return frame
@@ -297,8 +328,12 @@ function BankWindow:Refresh()
         frame.scanned:SetText("")
     end
 
-    if char and char.money and type(GetCoinTextureString) == "function" then
-        frame.money:SetText(GetCoinTextureString(char.money))
+    local amount = char and char.money
+    if frame.moneyFrame then
+        frame.moneyFrame:SetShown(amount ~= nil)
+        if amount then pcall(MoneyFrame_Update, frame.moneyFrame, amount, true) end
+    elseif amount and type(GetCoinTextureString) == "function" then
+        frame.money:SetText(GetCoinTextureString(amount))
     else
         frame.money:SetText("")
     end

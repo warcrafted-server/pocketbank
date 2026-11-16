@@ -31,12 +31,14 @@ local function widget(kind)
     o.SetTexture = function(self, v) self.texture = v end
     o.SetScript = function(self, name, fn) self.scripts = self.scripts or {}; self.scripts[name] = fn end
     o.CreateTexture = function(self) return widget("Texture") end
-    o.CreateFontString = function(self) local f = widget("FontString"); self.children[#self.children + 1] = f; return f end
+    o.CreateFontString = function(self) local f = widget("FontString"); ALL_FS[#ALL_FS + 1] = f; return f end
+    o.GetFrameLevel = function() return 1 end
     o.SetTitle = function(self, v) self.title = v end
     return o
 end
 
 FRAMES = {}
+ALL_FS = {}
 function CreateFrame(kind, name, parent, template)
     local f = widget(kind)
     f.shown = true
@@ -128,7 +130,7 @@ def main():
     """)
     texts = lua.eval("""(function()
         local out = {}
-        for _, fs in ipairs(PocketBankFrame.children) do out[#out + 1] = tostring(fs.text) end
+        for _, fs in ipairs(ALL_FS) do out[#out + 1] = tostring(fs.text) end
         return table.concat(out, '|')
     end)()""")
     check("Último escaneo:" in texts, "last scan line shown")
@@ -140,7 +142,7 @@ def main():
     lua.execute("PB_NS.DB.GetChar(true).bank = nil; PB_NS.ToggleWindow()")
     texts = lua.eval("""(function()
         local out = {}
-        for _, fs in ipairs(PocketBankFrame.children) do out[#out + 1] = tostring(fs.text) end
+        for _, fs in ipairs(ALL_FS) do out[#out + 1] = tostring(fs.text) end
         return table.concat(out, '|')
     end)()""")
     check("Aún sin datos" in texts, "empty state when the bank was never visited")

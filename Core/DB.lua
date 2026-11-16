@@ -59,7 +59,12 @@ function DB.SaveCharMeta()
     if not char then return nil end
     local _, class = UnitClass("player")
     char.guid = DB.GetCharKey()
-    char.name = UnitName("player")
+    -- Forever names have two parts; UnitName returns the second one where
+    -- other clients return the realm.
+    local name, secondName = UnitName("player")
+    char.name = name
+    char.secondName = secondName ~= "" and secondName or nil
+    char.fullName = char.secondName and (name .. " " .. char.secondName) or name
     char.realm = GetRealmName()
     char.class = class
     char.faction = UnitFactionGroup("player")

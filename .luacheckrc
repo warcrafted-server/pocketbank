@@ -10,6 +10,12 @@ globals = {
 }
 
 read_globals = {
+    "ChatEdit_InsertLink",
+    "ChatFrame_OpenChat",
+    "ChatFrameUtil",
+    "IsShiftKeyDown",
+    "MoneyFrame_SetType",
+    "MoneyFrame_Update",
     "C_Item",
     "GameTooltip",
     "GetCoinTextureString",
