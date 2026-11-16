@@ -30,4 +30,5 @@ d.ellipse((cx - 14, cy - 14, cx + 14, cy + 14), fill=(150, 105, 40))
 
 OUT.parent.mkdir(parents=True, exist_ok=True)
 img.convert("RGB").save(OUT)
+img.convert("RGBA").resize((64, 64)).save(OUT.parent.parent.parent / "Media" / "logo.tga")
 print(OUT)
