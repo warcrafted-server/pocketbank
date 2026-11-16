@@ -1,0 +1,14 @@
+## Interface: 16001
+## Title: PocketBank
+## Title-esES: PocketBank
+## Title-esMX: PocketBank
+## Notes: See what is in your bank, bags and gear on any character of your account, without visiting the bank. Native look for WoW Forever. Alternative to BankItems.
+## Notes-esES: Consulta lo que hay en tu banco, bolsas y equipo en cualquier personaje de tu cuenta, sin visitar el banco. Aspecto nativo para WoW Forever. Alternativa a BankItems.
+## Notes-esMX: Consulta lo que hay en tu banco, bolsas y equipo en cualquier personaje de tu cuenta, sin visitar el banco. Aspecto nativo para WoW Forever. Alternativa a BankItems.
+## Author: WarCrafted
+## Version: @project-version@
+## X-License: WNCL-1.0
+## X-Website: https://github.com/warcrafted-server/pocketbank
+## SavedVariables: PocketBankDB
+
+Core/Init.lua

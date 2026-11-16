@@ -1,0 +1,21 @@
+package-as: PocketBank
+
+manual-changelog:
+  filename: docs/RELEASE_NOTES.md
+  markup-type: markdown
+
+ignore:
+  - docs
+  - tools
+  - .agents
+  - .claude
+  - .agentrelay
+  - .github
+  - CLAUDE.md
+  - AGENTS.md
+  - TODO.md
+  - VERSION
+  - README.en.md
+  - .luacheckrc
+  - .gitignore
+  - PocketBankDev.toc
