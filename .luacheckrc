@@ -11,7 +11,9 @@ globals = {
 
 read_globals = {
     "C_AddOns",
+    "C_Bank",
     "C_Container",
+    "C_Timer",
     "CreateFrame",
     "GetAddOnMetadata",
     "GetLocale",
@@ -19,6 +21,13 @@ read_globals = {
     "BankFrame",
     "Enum",
     "GetBuildInfo",
+    "GetMoney",
+    "GetRealmName",
+    "UnitClass",
+    "UnitFactionGroup",
+    "UnitLevel",
+    "UnitName",
+    "time",
     "date",
     "strjoin",
     "strlower",

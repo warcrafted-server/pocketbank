@@ -17,4 +17,6 @@ Locales/enUS.lua
 Locales/esES.lua
 
 Core/Init.lua
+Core/DB.lua
+Modules/BankScan.lua
 Core/Debug.lua
