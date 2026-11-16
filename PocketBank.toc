@@ -12,5 +12,9 @@
 ## X-Curse-Project-ID: 1811209
 ## SavedVariables: PocketBankDB
 
+Locales/Locale.lua
+Locales/enUS.lua
+Locales/esES.lua
+
 Core/Init.lua
 Core/Debug.lua
