@@ -1,0 +1,352 @@
+local ADDON, PB = ...
+
+-- Read-only copy of the client's bank window (BankFrame/BankPanel). Sizes,
+-- offsets and atlases come from a /pb frames dump of the real window in
+-- build 1.60.1, so the layout matches it slot for slot.
+
+PB.UI = PB.UI or {}
+
+local BankWindow = {}
+PB.UI.BankWindow = BankWindow
+
+local FRAME_NAME = "PocketBankFrame"
+local WIDTH, HEIGHT = 480, 460
+local COLUMNS, ROWS = 8, 6
+local SLOT_SIZE = 37
+local SLOT_LEFT, SLOT_TOP = 47, -63
+local SLOT_GAP_X, SLOT_GAP_Y = 13, 10
+local SIDE_TAB_SIZE = 55
+local CHEST_ICON = 8197077 -- icon of the client's own bank side tab
+local DEFAULT_TAB_ICON = 134400 -- question mark: a tab without a chosen icon
+local QUALITY_BORDER = 130839
+local SLOT_HIGHLIGHT = 130718
+local ROCK_BACKGROUND = 374155
+
+local L = PB.L
+local frame
+local slots = {}
+local sideTabs = {}
+local selectedTab = 1
+local charKey
+
+local function setAtlas(texture, atlas, useSize)
+    if texture and type(texture.SetAtlas) == "function" then
+        return pcall(texture.SetAtlas, texture, atlas, useSize) and true or false
+    end
+    return false
+end
+
+local function qualityColor(quality)
+    if C_Item and C_Item.GetItemQualityColor then
+        local ok, r, g, b = pcall(C_Item.GetItemQualityColor, quality)
+        if ok and r then return r, g, b end
+    end
+    local color = ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[quality]
+    if color then return color.r, color.g, color.b end
+end
+
+local function currentChar()
+    if not PB.DB then return nil end
+    if charKey then return PB.DB.GetCharByKey(charKey) end
+    return PB.DB.GetChar(false)
+end
+
+-- Item slots ---------------------------------------------------------------
+
+local function slotOnEnter(self)
+    if not self.link or not GameTooltip then return end
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    pcall(GameTooltip.SetHyperlink, GameTooltip, self.link)
+    GameTooltip:Show()
+end
+
+local function slotOnLeave()
+    if GameTooltip then GameTooltip:Hide() end
+end
+
+local function slotOnClick(self)
+    -- Shift-click links the item in chat, ctrl-click previews it: the same
+    -- modified clicks the real bank accepts. Plain clicks do nothing, the
+    -- items are not really here.
+    if self.link and type(HandleModifiedItemClick) == "function" then
+        pcall(HandleModifiedItemClick, self.link)
+    end
+end
+
+local function createSlot(parent, index)
+    local slot = CreateFrame("Button", nil, parent)
+    slot:SetSize(SLOT_SIZE, SLOT_SIZE)
+    slot:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+
+    local bg = slot:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints()
+    setAtlas(bg, "bags-item-bankslot64")
+
+    local icon = slot:CreateTexture(nil, "BORDER")
+    icon:SetAllPoints()
+    slot.icon = icon
+
+    local border = slot:CreateTexture(nil, "ARTWORK")
+    border:SetAllPoints()
+    setAtlas(border, "bank-frame-item-slotframe")
+
+    local quality = slot:CreateTexture(nil, "OVERLAY")
+    quality:SetAllPoints()
+    quality:SetTexture(QUALITY_BORDER)
+    quality:Hide()
+    slot.quality = quality
+
+    local count = slot:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
+    count:SetPoint("BOTTOMRIGHT", -2, 2)
+    count:SetJustifyH("RIGHT")
+    slot.count = count
+
+    local highlight = slot:CreateTexture(nil, "HIGHLIGHT")
+    highlight:SetAllPoints()
+    highlight:SetTexture(SLOT_HIGHLIGHT)
+    highlight:SetBlendMode("ADD")
+
+    local column = (index - 1) % COLUMNS
+    local row = math.floor((index - 1) / COLUMNS)
+    slot:SetPoint("TOPLEFT", parent, "TOPLEFT",
+        SLOT_LEFT + column * (SLOT_SIZE + SLOT_GAP_X),
+        SLOT_TOP - row * (SLOT_SIZE + SLOT_GAP_Y))
+
+    slot:SetScript("OnEnter", slotOnEnter)
+    slot:SetScript("OnLeave", slotOnLeave)
+    slot:SetScript("OnClick", slotOnClick)
+    return slot
+end
+
+local function fillSlot(slot, item)
+    slot.link = item and item.link or nil
+    if not item then
+        slot.icon:SetTexture(nil)
+        slot.count:SetText("")
+        slot.quality:Hide()
+        return
+    end
+    slot.icon:SetTexture(item.icon)
+    slot.count:SetText((item.count or 1) > 1 and item.count or "")
+    local r, g, b
+    if (item.quality or 0) >= 2 then r, g, b = qualityColor(item.quality) end
+    if r then
+        slot.quality:SetVertexColor(r, g, b)
+        slot.quality:Show()
+    else
+        slot.quality:Hide()
+    end
+end
+
+-- Side tabs (one per purchased bank tab) ---------------------------------
+
+local function sideTabOnEnter(self)
+    if not GameTooltip or not self.tabName then return end
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText(self.tabName, 1, 1, 1)
+    GameTooltip:Show()
+end
+
+local function createSideTab(index)
+    local tab = CreateFrame("Button", nil, frame)
+    tab:SetSize(SIDE_TAB_SIZE, SIDE_TAB_SIZE)
+    tab:SetPoint("TOPLEFT", frame, "TOPRIGHT", 0, -60 - (index - 1) * (SIDE_TAB_SIZE + 5))
+
+    local bg = tab:CreateTexture(nil, "BACKGROUND")
+    bg:SetPoint("CENTER")
+    if not setAtlas(bg, "common-sidetab", true) then bg:SetAllPoints() end
+
+    local icon = tab:CreateTexture(nil, "ARTWORK")
+    icon:SetSize(SIDE_TAB_SIZE - 20, SIDE_TAB_SIZE - 20)
+    icon:SetPoint("CENTER", -2, 0)
+    tab.icon = icon
+
+    local selected = tab:CreateTexture(nil, "OVERLAY")
+    selected:SetPoint("CENTER")
+    setAtlas(selected, "common-sidetab-selected", true)
+    tab.selected = selected
+
+    local hover = tab:CreateTexture(nil, "HIGHLIGHT")
+    hover:SetPoint("CENTER")
+    setAtlas(hover, "common-sidetab-hover", true)
+
+    tab:SetScript("OnEnter", sideTabOnEnter)
+    tab:SetScript("OnLeave", slotOnLeave)
+    tab:SetScript("OnClick", function()
+        selectedTab = index
+        BankWindow:Refresh()
+    end)
+    return tab
+end
+
+-- Frame -------------------------------------------------------------------
+
+local function addShadows(parent)
+    local area = CreateFrame("Frame", nil, parent)
+    area:SetPoint("TOPLEFT", 0, 0)
+    area:SetSize(WIDTH, 430)
+    local corners = {
+        { "bank-frame-shadow-cornertopleft", "TOPLEFT" },
+        { "bank-frame-shadow-cornertopright", "TOPRIGHT" },
+        { "bank-frame-shadow-cornerbottomleft", "BOTTOMLEFT" },
+        { "bank-frame-shadow-cornerbottomright", "BOTTOMRIGHT" },
+    }
+    for _, c in ipairs(corners) do
+        local t = area:CreateTexture(nil, "BORDER")
+        setAtlas(t, c[1], true)
+        t:SetPoint(c[2])
+    end
+end
+
+local function create()
+    local ok, created = pcall(CreateFrame, "Frame", FRAME_NAME, UIParent, "PortraitFrameTemplate")
+    if not ok or not created then return nil end
+    frame = created
+    frame:SetSize(WIDTH, HEIGHT)
+    frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 16, -116)
+    frame:SetFrameStrata("MEDIUM")
+    frame:SetToplevel(true)
+    frame:EnableMouse(true)
+    frame:Hide()
+
+    -- PortraitFrameTemplate brings the metal border, portrait, title and
+    -- close button; the rock background and streaks are the bank's own.
+    local rock = frame:CreateTexture(nil, "BACKGROUND", nil, -2)
+    rock:SetTexture(ROCK_BACKGROUND, "REPEAT", "REPEAT")
+    rock:SetHorizTile(true)
+    rock:SetVertTile(true)
+    rock:SetPoint("TOPLEFT", 2, -21)
+    rock:SetPoint("BOTTOMRIGHT", -2, 2)
+
+    local background = frame:CreateTexture(nil, "BACKGROUND", nil, -1)
+    setAtlas(background, "bank-frame-background")
+    background:SetPoint("TOPLEFT", 0, -20)
+    background:SetSize(WIDTH, 410)
+
+    local streaks = frame:CreateTexture(nil, "BORDER")
+    setAtlas(streaks, "_UI-Frame-TopTileStreaks")
+    streaks:SetPoint("TOPLEFT", 4, -21)
+    streaks:SetPoint("TOPRIGHT", -4, -21)
+    streaks:SetHeight(43)
+
+    addShadows(frame)
+
+    for i = 1, COLUMNS * ROWS do slots[i] = createSlot(frame, i) end
+
+    local divider = frame:CreateTexture(nil, "ARTWORK")
+    setAtlas(divider, "bank-divider")
+    divider:SetPoint("TOPLEFT", frame, "TOPLEFT", 40, SLOT_TOP - ROWS * (SLOT_SIZE + SLOT_GAP_Y) - 4)
+    divider:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -30, SLOT_TOP - ROWS * (SLOT_SIZE + SLOT_GAP_Y) - 4)
+    divider:SetHeight(16)
+
+    local scanned = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    scanned:SetPoint("TOPLEFT", divider, "BOTTOMLEFT", 8, -10)
+    scanned:SetJustifyH("LEFT")
+    frame.scanned = scanned
+
+    local empty = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    empty:SetPoint("CENTER", frame, "TOPLEFT", WIDTH / 2, SLOT_TOP - ROWS * (SLOT_SIZE + SLOT_GAP_Y) / 2)
+    empty:SetWidth(WIDTH - 120)
+    frame.empty = empty
+
+    local money = frame:CreateFontString(nil, "OVERLAY", "NumberFontNormalRight")
+    money:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -12, 9)
+    frame.money = money
+
+    if type(UISpecialFrames) == "table" then UISpecialFrames[#UISpecialFrames + 1] = FRAME_NAME end
+    return frame
+end
+
+local function setTitle(text)
+    if type(frame.SetTitle) == "function" and pcall(frame.SetTitle, frame, text) then return end
+    local title = frame.TitleText or (frame.TitleContainer and frame.TitleContainer.TitleText)
+    if title then title:SetText(text) end
+end
+
+local function setPortrait(char)
+    local isPlayer = char and PB.DB and char.guid == PB.DB.GetCharKey()
+    if isPlayer and type(frame.SetPortraitToUnit) == "function" and pcall(frame.SetPortraitToUnit, frame, "player") then
+        return
+    end
+    local texture = frame.portrait or (frame.PortraitContainer and frame.PortraitContainer.portrait)
+    if isPlayer and texture and type(SetPortraitTexture) == "function" and pcall(SetPortraitTexture, texture, "player") then
+        return
+    end
+    local asset = "Interface\\AddOns\\" .. ADDON .. "\\Media\\logo"
+    if type(frame.SetPortraitToAsset) == "function" then pcall(frame.SetPortraitToAsset, frame, asset) end
+end
+
+function BankWindow:Refresh()
+    if not frame then return end
+    local char = currentChar()
+    local tabs = char and char.bank and char.bank.tabs or {}
+    if selectedTab > #tabs then selectedTab = 1 end
+    local tab = tabs[selectedTab]
+
+    setTitle(char and char.name and string.format(L.BANK_TITLE, char.name) or L.BANK)
+    setPortrait(char)
+
+    local items = tab and tab.items or {}
+    for i, slot in ipairs(slots) do fillSlot(slot, items[i]) end
+
+    if tab then
+        frame.empty:SetText("")
+        frame.scanned:SetText(string.format(L.LAST_SCANNED, date(L.DATE_FORMAT, char.bank.scanned or 0)))
+    else
+        frame.empty:SetText(L.NO_DATA)
+        frame.scanned:SetText("")
+    end
+
+    if char and char.money and type(GetCoinTextureString) == "function" then
+        frame.money:SetText(GetCoinTextureString(char.money))
+    else
+        frame.money:SetText("")
+    end
+
+    for i = 1, math.max(#tabs, #sideTabs) do
+        local data = tabs[i]
+        local sideTab = sideTabs[i]
+        if data and not sideTab then
+            sideTab = createSideTab(i)
+            sideTabs[i] = sideTab
+        end
+        if sideTab then
+            if data then
+                local icon = data.icon
+                if not icon or icon == DEFAULT_TAB_ICON then icon = CHEST_ICON end
+                sideTab.icon:SetTexture(icon)
+                sideTab.tabName = data.name
+                sideTab.selected:SetShown(i == selectedTab)
+                sideTab:Show()
+            else
+                sideTab:Hide()
+            end
+        end
+    end
+end
+
+function BankWindow:Show(key)
+    if not frame and not create() then
+        print(L.WINDOW_NOT_READY)
+        return
+    end
+    charKey = key
+    self:Refresh()
+    frame:Show()
+end
+
+function BankWindow:Hide()
+    if frame then frame:Hide() end
+end
+
+function BankWindow:Toggle()
+    if frame and frame:IsShown() then
+        self:Hide()
+    else
+        self:Show(charKey)
+    end
+end
+
+PB.RegisterCallback("BANK_SCANNED", function()
+    if frame and frame:IsShown() then BankWindow:Refresh() end
+end)

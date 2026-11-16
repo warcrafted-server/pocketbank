@@ -10,6 +10,13 @@ globals = {
 }
 
 read_globals = {
+    "C_Item",
+    "GameTooltip",
+    "GetCoinTextureString",
+    "HandleModifiedItemClick",
+    "ITEM_QUALITY_COLORS",
+    "SetPortraitTexture",
+    "UISpecialFrames",
     "C_AddOns",
     "C_Bank",
     "C_Container",
