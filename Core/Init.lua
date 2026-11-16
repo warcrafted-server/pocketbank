@@ -21,6 +21,8 @@ SlashCmdList["POCKETBANK"] = function(msg)
     local cmd = strlower(strtrim(msg or ""))
     if cmd == "debug" and PB.Debug then
         PB.Debug.Run()
+    elseif cmd == "frames" and PB.Debug then
+        PB.Debug.Frames()
     else
         print("PocketBank " .. (metadata("Version") or "?"))
     end

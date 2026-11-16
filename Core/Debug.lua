@@ -124,6 +124,76 @@ function Debug.Run()
     print(string.format("  C_Container=%s  BankFrame=%s", tostring(C_Container ~= nil), tostring(BankFrame ~= nil)))
 end
 
+local function dumpValue(v, depth)
+    if type(v) ~= "table" then return tostring(v) end
+    if depth <= 0 then return "{...}" end
+    local parts = {}
+    for _, k in ipairs(sortedKeys(v)) do
+        local val = v[k]
+        if val == nil then val = v[tonumber(k)] end
+        parts[#parts + 1] = k .. "=" .. dumpValue(val, depth - 1)
+    end
+    return "{" .. table.concat(parts, ", ") .. "}"
+end
+
+local function walk(frame, depth, out, indent)
+    local function add(fmt, ...) out[#out + 1] = indent .. string.format(fmt, ...) end
+    local name = frame.GetName and frame:GetName() or "(anon)"
+    local w, h = frame:GetWidth() or 0, frame:GetHeight() or 0
+    local point, _, relPoint, x, y = frame:GetPoint(1)
+    add("[%s] %s %.0fx%.0f shown=%s point=%s/%s %.0f,%.0f strata=%s", tostring(frame:GetObjectType()), tostring(name), w, h,
+        tostring(frame:IsShown()), tostring(point), tostring(relPoint), x or 0, y or 0, tostring(frame:GetFrameStrata()))
+    if frame.GetRegions then
+        for _, r in ipairs({ frame:GetRegions() }) do
+            local t = r:GetObjectType()
+            if t == "Texture" then
+                add("  tex %s layer=%s atlas=%s file=%s size=%.0fx%.0f", tostring(r:GetName() or "-"), tostring(r:GetDrawLayer()),
+                    tostring(r:GetAtlas()), tostring(r:GetTexture()), r:GetWidth() or 0, r:GetHeight() or 0)
+            elseif t == "FontString" then
+                add("  text %s font=%s %q", tostring(r:GetName() or "-"), tostring(r:GetFontObject() and r:GetFontObject():GetName()), tostring(r:GetText()))
+            end
+        end
+    end
+    if depth > 0 and frame.GetChildren then
+        local kids = { frame:GetChildren() }
+        local shown = 0
+        for _, c in ipairs(kids) do
+            -- item slots repeat 48 times: show the first few of a kind only
+            shown = shown + 1
+            if shown <= 40 then walk(c, depth - 1, out, indent .. "  ") end
+        end
+        if #kids > 40 then add("  ... %d more children", #kids - 40) end
+    end
+end
+
+function Debug.Frames()
+    local out = {}
+    local function add(fmt, ...) out[#out + 1] = string.format(fmt, ...) end
+    add("BankFrame shown=%s", tostring(BankFrame and BankFrame:IsShown()))
+    if C_Bank then
+        for _, fn in ipairs({ "FetchViewableBankTypes", "FetchPurchasedBankTabIDs", "FetchPurchasedBankTabData",
+            "FetchNumPurchasedBankTabs", "FetchMaxNumBankTabs", "CanViewBank", "CanUseBank" }) do
+            local f = C_Bank[fn]
+            if f then
+                local ok, a, b = pcall(f, Enum and Enum.BankType and Enum.BankType.Character or 0)
+                add("C_Bank.%s(Character) -> %s %s %s", fn, tostring(ok), dumpValue(a, 3), dumpValue(b, 2))
+                local ok2, a2 = pcall(f, Enum and Enum.BankType and Enum.BankType.Account or 2)
+                add("C_Bank.%s(Account) -> %s %s", fn, tostring(ok2), dumpValue(a2, 3))
+            end
+        end
+    end
+    if Enum and Enum.BankType then add("Enum.BankType = %s", dumpValue(Enum.BankType, 1)) end
+    if C_Container and C_Container.GetContainerNumSlots then
+        for id = 6, 23 do add("container %d slots=%s name=%s", id, tostring(C_Container.GetContainerNumSlots(id)),
+            tostring(C_Container.GetBagName and C_Container.GetBagName(id))) end
+    end
+    local root = BankFrame
+    if root then walk(root, 4, out, "") end
+    local store = db()
+    store.frames = { time = date("%Y-%m-%d %H:%M:%S"), lines = out }
+    print(string.format("|cffffd100PocketBank frames|r: %d lines saved. Type /reload to write them to disk.", #out))
+end
+
 local frame = CreateFrame("Frame")
 for _, ev in ipairs(EVENTS) do pcall(frame.RegisterEvent, frame, ev) end
 frame:SetScript("OnEvent", function(_, event, ...)
