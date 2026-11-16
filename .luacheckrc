@@ -16,6 +16,14 @@ read_globals = {
     "GetAddOnMetadata",
     "GetLocale",
     "UIParent",
+    "BankFrame",
+    "Enum",
+    "GetBuildInfo",
+    "date",
+    "strjoin",
+    "strlower",
+    "strtrim",
+    "tostringall",
     "print",
 }
 

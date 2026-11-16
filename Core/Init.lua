@@ -17,6 +17,11 @@ end)
 
 SLASH_POCKETBANK1 = "/pocketbank"
 SLASH_POCKETBANK2 = "/pb"
-SlashCmdList["POCKETBANK"] = function()
-    print("PocketBank " .. (metadata("Version") or "?"))
+SlashCmdList["POCKETBANK"] = function(msg)
+    local cmd = strlower(strtrim(msg or ""))
+    if cmd == "debug" and PB.Debug then
+        PB.Debug.Run()
+    else
+        print("PocketBank " .. (metadata("Version") or "?"))
+    end
 end

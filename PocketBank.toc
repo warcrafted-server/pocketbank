@@ -9,6 +9,8 @@
 ## Version: @project-version@
 ## X-License: WNCL-1.0
 ## X-Website: https://github.com/warcrafted-server/pocketbank
+## X-Curse-Project-ID: 1811209
 ## SavedVariables: PocketBankDB
 
 Core/Init.lua
+Core/Debug.lua
