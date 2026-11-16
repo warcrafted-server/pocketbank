@@ -20,6 +20,14 @@ function PB.FireCallback(name, ...)
     for i = 1, #list do list[i](...) end
 end
 
+function PB.ToggleWindow()
+    if PB.UI and PB.UI.BankWindow then
+        PB.UI.BankWindow:Toggle()
+    else
+        print(PB.L.WINDOW_NOT_READY)
+    end
+end
+
 local function metadata(field)
     local get = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
     return get and get(ADDON, field)
@@ -46,6 +54,8 @@ SlashCmdList["POCKETBANK"] = function(msg)
         PB.Debug.Run()
     elseif cmd == "frames" and PB.Debug then
         PB.Debug.Frames()
+    elseif cmd == "" then
+        PB.ToggleWindow()
     else
         print("PocketBank " .. (metadata("Version") or "?"))
     end
