@@ -22,7 +22,7 @@ ALL_LUA = sorted(
     for path in (ROOT / folder).glob("*.lua")
 )
 
-CHAR = 'PocketBankDB.chars["Realm-Name"]'
+CHAR = 'PocketBankDB.chars["Player-1-0001"]'
 
 HARNESS = r"""
 PB = {}
@@ -46,6 +46,7 @@ end
 function GetLocale() return "enUS" end
 function GetRealmName() return "Realm" end
 function UnitName(unit) return "Name" end
+function UnitGUID(unit) return "Player-1-0001" end
 function UnitClass(unit) return "Warrior", "WARRIOR" end
 function UnitFactionGroup(unit) return "Alliance" end
 function UnitLevel(unit) return 60 end
@@ -183,8 +184,8 @@ def test_populated_bank():
     lua.execute("RunTimers()")
 
     check(value(lua, "PocketBankDB ~= nil") is True, "ADDON_LOADED creates PocketBankDB")
-    check(value(lua, "PocketBankDB.schemaVersion") == 1, "schemaVersion is 1")
-    check(value(lua, f"{CHAR} ~= nil") is True, "character stored under Realm-Name")
+    check(value(lua, "PocketBankDB.schemaVersion") == 2, "schemaVersion is 2")
+    check(value(lua, f"{CHAR} ~= nil") is True, "character stored under its GUID")
     check(value(lua, f'{CHAR}.name == "Name" and {CHAR}.realm == "Realm"'),
           "character name and realm saved")
     check(value(lua, f'{CHAR}["class"]') == "WARRIOR", "class saved")
@@ -240,11 +241,15 @@ def test_debug_key_survives_init():
         "PB.DB.Init()"
     )
     check(value(lua, 'PocketBankDB.debug.events[1]') == "kept", "debug key survives Init")
-    check(value(lua, "PocketBankDB.schemaVersion") == 1, "Init migrates the store to schemaVersion 1")
+    check(value(lua, "PocketBankDB.schemaVersion") == 2, "Init migrates the store to schemaVersion 2")
     check(value(lua, "type(PocketBankDB.chars)") == "table", "Init creates the chars table")
 
     lua.execute(f'{CHAR} = {{ name = "Name", bank = {{ tabs = {{}} }} }}; PB.DB.Init()')
     check(value(lua, f"{CHAR} ~= nil") is True, "Init keeps existing characters")
+
+    lua.execute('PocketBankDB = { schemaVersion = 1, chars = { ["Realm-Old"] = {}, ["Player-1-0002"] = {} } }; PB.DB.Init()')
+    check(value(lua, 'PocketBankDB.chars["Realm-Old"] == nil') is True, "v2 migration drops realm-keyed characters")
+    check(value(lua, 'PocketBankDB.chars["Player-1-0002"] ~= nil') is True, "v2 migration keeps GUID-keyed characters")
 
 
 def main():

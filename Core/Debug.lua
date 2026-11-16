@@ -44,6 +44,24 @@ local function collect()
     add("locale: %s", tostring(GetLocale()))
     add("bankFrameShown: %s", tostring(BankFrame and BankFrame:IsShown() or false))
 
+    -- Forever uses two-part names and no realms: find which call returns what.
+    local function probe(label, fn, ...)
+        if type(fn) ~= "function" then add("%s: missing", label) return end
+        local results = { pcall(fn, ...) }
+        local parts = {}
+        for i = 2, #results do parts[#parts + 1] = tostring(results[i]) end
+        add("%s: ok=%s -> %s", label, tostring(results[1]), table.concat(parts, " | "))
+    end
+    probe("UnitName", _G.UnitName, "player")
+    probe("UnitFullName", _G.UnitFullName, "player")
+    probe("UnitNameUnmodified", _G.UnitNameUnmodified, "player")
+    probe("GetUnitName(true)", _G.GetUnitName, "player", true)
+    probe("UnitGUID", _G.UnitGUID, "player")
+    probe("GetRealmName", _G.GetRealmName)
+    probe("GetNormalizedRealmName", _G.GetNormalizedRealmName)
+    probe("GetPlayerInfoByGUID", _G.GetPlayerInfoByGUID, _G.UnitGUID and _G.UnitGUID("player"))
+    if C_PlayerInfo then add("C_PlayerInfo: %s", table.concat(sortedKeys(C_PlayerInfo), ", ")) end
+
     for _, name in ipairs({ "BANK_CONTAINER", "REAGENTBANK_CONTAINER", "KEYRING_CONTAINER",
         "NUM_BAG_SLOTS", "NUM_BANKBAGSLOTS", "NUM_BANKGENERIC_SLOTS",
         "NUM_TOTAL_EQUIPPED_BAG_SLOTS", "NUM_TOTAL_BAG_FRAMES" }) do
