@@ -297,15 +297,57 @@ local function addShadows(parent)
     return area
 end
 
+local function windowSettings()
+    if type(PocketBankDB) ~= "table" then return nil end
+    if type(PocketBankDB.settings) ~= "table" then PocketBankDB.settings = {} end
+    return PocketBankDB.settings
+end
+
+-- The window grows downwards (bank bags, bags), so its top-left corner is
+-- what gets saved and restored.
+local function placeWindow()
+    frame:ClearAllPoints()
+    local settings = windowSettings()
+    local saved = settings and settings.window
+    if type(saved) == "table" and tonumber(saved.left) and tonumber(saved.top) then
+        frame:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", saved.left, saved.top)
+    else
+        frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 16, -116)
+    end
+end
+
+local function saveWindowPosition()
+    local left, top = frame:GetLeft(), frame:GetTop()
+    local settings = windowSettings()
+    if settings and left and top then settings.window = { left = left, top = top } end
+    placeWindow()
+end
+
+function BankWindow:ResetPosition()
+    local settings = windowSettings()
+    if settings then settings.window = nil end
+    if frame then placeWindow() end
+end
+
 local function create()
     local ok, created = pcall(CreateFrame, "Frame", FRAME_NAME, UIParent, "PortraitFrameTemplate")
     if not ok or not created then return nil end
     frame = created
     frame:SetSize(WIDTH, HEIGHT)
-    frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 16, -116)
+    placeWindow()
     frame:SetFrameStrata("MEDIUM")
     frame:SetToplevel(true)
     frame:EnableMouse(true)
+    frame:SetMovable(true)
+    frame:SetClampedToScreen(true)
+    frame:RegisterForDrag("LeftButton")
+    frame:SetScript("OnDragStart", function(self) self:StartMoving() end)
+    frame:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+        -- The position lives in PocketBankDB, not in the client's layout cache.
+        if type(self.SetUserPlaced) == "function" then pcall(self.SetUserPlaced, self, false) end
+        saveWindowPosition()
+    end)
     frame:Hide()
 
     -- PortraitFrameTemplate brings the metal border, portrait, title and

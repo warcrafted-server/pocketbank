@@ -61,6 +61,9 @@ SlashCmdList["POCKETBANK"] = function(msg)
         PB.Debug.Paperdoll()
     elseif cmd == "" then
         PB.ToggleWindow()
+    elseif cmd == "reset" and PB.UI and PB.UI.BankWindow then
+        PB.UI.BankWindow:ResetPosition()
+        print(PB.L.WINDOW_RESET)
     else
         print("PocketBank " .. (metadata("Version") or "?"))
     end
