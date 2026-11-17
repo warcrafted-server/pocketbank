@@ -272,6 +272,46 @@ function Debug.Paperdoll()
     print(string.format("|cffffd100PocketBank paperdoll|r: %d lines saved. Type /reload to write them to disk.", #out))
 end
 
+-- Experiment: can a stock race model loaded by path wear saved gear? This is
+-- the only way to draw an offline character (no SetCustomRace here).
+local MODEL_PATHS = {
+    hd = "character\\human\\male\\humanmale_hd.m2",
+    classic = "character\\human\\male\\humanmale.m2",
+}
+local testFrame
+
+function Debug.ModelTest(arg)
+    local path = MODEL_PATHS[arg ~= "" and arg or "hd"] or arg
+    if not testFrame then
+        testFrame = CreateFrame("Frame", nil, UIParent, "BasicFrameTemplateWithInset")
+        testFrame:SetSize(260, 360)
+        testFrame:SetPoint("CENTER")
+        testFrame:SetFrameStrata("DIALOG")
+        testFrame.model = CreateFrame("DressUpModel", nil, testFrame)
+        testFrame.model:SetPoint("TOPLEFT", 8, -28)
+        testFrame.model:SetPoint("BOTTOMRIGHT", -8, 8)
+    end
+    local model = testFrame.model
+    local out = { "path=" .. path }
+    local function try(label, fn, ...)
+        local ok, a, b = pcall(fn, model, ...)
+        out[#out + 1] = string.format("%s: ok=%s %s %s", label, tostring(ok), tostring(a), tostring(b))
+    end
+    try("ClearModel", model.ClearModel)
+    try("SetModel", model.SetModel, path)
+    try("GetModelFileID", model.GetModelFileID)
+    try("Undress", model.Undress)
+    local char = PB.DB and PB.DB.GetChar(false)
+    local slots = char and char.equipment and char.equipment.slots or {}
+    for slot, item in pairs(slots) do
+        if item.link then try("TryOn " .. slot, model.TryOn, item.link) end
+    end
+    testFrame:Show()
+    local store = db()
+    store.modeltest = { time = date("%Y-%m-%d %H:%M:%S"), lines = out }
+    print(string.format("|cffffd100PocketBank modeltest|r: %s. Look at the model, then /reload.", path))
+end
+
 local frame = CreateFrame("Frame")
 for _, ev in ipairs(EVENTS) do pcall(frame.RegisterEvent, frame, ev) end
 frame:SetScript("OnEvent", function(_, event, ...)

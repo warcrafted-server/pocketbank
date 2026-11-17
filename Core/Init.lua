@@ -59,6 +59,8 @@ SlashCmdList["POCKETBANK"] = function(msg)
         PB.Debug.Frames()
     elseif cmd == "paperdoll" and PB.Debug then
         PB.Debug.Paperdoll()
+    elseif cmd:match("^modeltest") and PB.Debug then
+        PB.Debug.ModelTest(strtrim(cmd:sub(10)))
     elseif cmd == "" then
         PB.ToggleWindow()
     else
