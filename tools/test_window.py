@@ -64,6 +64,8 @@ function GetRealmName() return "CAMWOW EU5 Realm 5 PvE" end
 function UnitName() return "Charman" end
 function UnitGUID() return "Player-6947-011E3126" end
 function UnitClass() return "Chamán", "SHAMAN" end
+function UnitRace() return "Draenei", "Draenei", 11 end
+function UnitSex() return 2 end
 function UnitFactionGroup() return "Alliance" end
 function UnitLevel() return 16 end
 function GetMoney() return 16454 end
@@ -219,7 +221,7 @@ def main():
     check(lua.eval("PocketBankFrame.title") == "Banco de Abel", "reopening keeps the selected character")
 
     # 0.3.0: bags view
-    check(lua.eval("#PocketBankFrame.sideTabs") == 2, "bank and bags side tabs")
+    check(lua.eval("#PocketBankFrame.sideTabs") == 3, "bank, bags and equipment side tabs")
     check(lua.eval("PocketBankFrame.sideTabs[1].selected.shown") is True, "bank tab selected by default")
     lua.execute("""
         PocketBankDB.chars["Player-6947-0000AAAA"].bags = { scanned = 1794871143, tabs = {
@@ -255,6 +257,49 @@ def main():
     check(lua.eval("PocketBankFrame.title") == "Bolsas de Abel", "reopening keeps the bags view")
     lua.execute("PocketBankFrame.sideTabs[1].scripts.OnClick()")
     check(lua.eval("PocketBankFrame.title") == "Banco de Abel", "bank tab goes back to the bank")
+
+    # 0.4.0: equipment view (character sheet)
+    lua.execute("""
+        local me = PB_NS.DB.GetChar(true)
+        me.equipment = { scanned = 1794871143, slots = {
+            [1] = { id = 10, link = "item:10", icon = 1001, quality = 3 },
+            [16] = { id = 20, link = "item:20", icon = 1016, quality = 2 } } }
+        ROOT.radios[1].setSelected()
+        PocketBankFrame.sideTabs[3].scripts.OnClick()
+    """)
+    check(lua.eval("PocketBankFrame.title") == "Charman", "equipment view titled with the character name")
+    check(lua.eval("PocketBankFrame.sideTabs[3].selected.shown") is True, "equipment tab marked as selected")
+    grid_hidden = lua.eval("""(function()
+        for _, part in ipairs(PocketBankFrame.gridParts) do if part.shown then return false end end
+        return true
+    end)()""")
+    check(grid_hidden, "bank background, divider and money hidden in the equipment view")
+    icons = lua.eval("""(function()
+        local out = {}
+        for _, b in ipairs(BUTTONS) do if b.shown and b.slotId then out[b.slotId] = b.icon.texture or 0 end end
+        local n = 0 for _ in pairs(out) do n = n + 1 end
+        return n .. ':' .. tostring(out[1]) .. ':' .. tostring(out[16])
+    end)()""")
+    check(icons == "19:1001:1016", f"19 gear slots with the saved items ({icons})")
+    texts = lua.eval("""(function()
+        local out = {}
+        for _, fs in ipairs(ALL_FS) do if fs.text then out[#out + 1] = tostring(fs.text) end end
+        return table.concat(out, '|')
+    end)()""")
+    check("Chamán de nivel 16" in texts, "level line with the class name")
+    lua.execute("ROOT.radios[2].setSelected()")
+    texts = lua.eval("""(function()
+        local out = {}
+        for _, fs in ipairs(ALL_FS) do if fs.text then out[#out + 1] = tostring(fs.text) end end
+        return table.concat(out, '|')
+    end)()""")
+    check("Aún no hay datos del equipo" in texts, "other character without equipment data")
+    lua.execute("PocketBankFrame.sideTabs[1].scripts.OnClick()")
+    gear_hidden = lua.eval("""(function()
+        for _, b in ipairs(BUTTONS) do if b.shown and b.slotId then return false end end
+        return true
+    end)()""")
+    check(gear_hidden and lua.eval("PocketBankFrame.title") == "Banco de Abel", "back to the bank hides the gear slots")
 
     if failures:
         print(f"\n{len(failures)} check(s) failed")

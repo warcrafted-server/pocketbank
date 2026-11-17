@@ -51,6 +51,8 @@ function GetRealmName() return "Realm" end
 function UnitName(unit) return "Name" end
 function UnitGUID(unit) return "Player-1-0001" end
 function UnitClass(unit) return "Warrior", "WARRIOR" end
+function UnitRace(unit) return "Human", "Human", 1 end
+function UnitSex(unit) return 2 end
 function UnitFactionGroup(unit) return "Alliance" end
 function UnitLevel(unit) return 60 end
 function GetMoney() return 12345 end

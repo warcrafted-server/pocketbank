@@ -76,8 +76,13 @@ end
 function DB.SaveCharMeta(event)
     local char = DB.GetChar(true)
     if not char then return nil end
-    local _, class = UnitClass("player")
+    local className, class = UnitClass("player")
+    local raceName, race = UnitRace("player")
     char.guid = DB.GetCharKey()
+    char.className = className
+    char.raceName = raceName
+    char.race = race
+    char.sex = UnitSex("player")
     -- Forever names have two parts; UnitName returns the second one where
     -- other clients return the realm.
     local name, secondName = UnitName("player")

@@ -22,5 +22,6 @@ Modules/BankScan.lua
 Modules/BagScan.lua
 Modules/EquipScan.lua
 UI/BankWindow.lua
+UI/EquipmentView.lua
 UI/MinimapButton.lua
 Core/Debug.lua
