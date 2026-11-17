@@ -19,6 +19,10 @@ jobs:
 
       - name: Package and release
         uses: BigWigsMods/packager@v2
+        with:
+          # File name and CurseForge display name: "PocketBank-vX.Y.Z" (the
+          # default label is "vX.Y.Z-forever").
+          args: -n "{package-name}-{project-version}:{package-name}-{project-version}"
         env:
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
           GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}

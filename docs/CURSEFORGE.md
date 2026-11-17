@@ -1,31 +1,3 @@
-# PocketBank — datos para crear el proyecto en CurseForge
-
-Datos para rellenar el formulario de creación y, después, texto para pegar en la descripción (primero inglés, luego español). Se actualiza en cada versión publicada.
-
-## Formulario de creación
-
-| Campo | Valor |
-|---|---|
-| Juego | World of Warcraft |
-| Nombre del proyecto | PocketBank |
-| Slug (URL) | pocketbank |
-| Categoría principal | Bags & Inventory |
-| Logo | `docs/img/logo.png` (400×400) |
-| Licencia | Custom / All Rights Reserved (la real es WNCL-1.0, ver `LICENSE`) |
-| Enlace de código fuente | https://github.com/warcrafted-server/pocketbank |
-| Enlace de incidencias | https://github.com/warcrafted-server/pocketbank/issues |
-| Versión de juego del archivo | la de WoW Forever (Interface 16001) |
-
-**Resumen (EN, una línea):** See what is in your bank, bags and gear on every character of your account without visiting the bank. A modern BankItems alternative.
-
-**Resumen (ES):** Consulta el banco, las bolsas y el equipo de todos tus personajes sin visitar el banco. Alternativa moderna a BankItems.
-
-Proyecto creado: ID **1811209** (en `PocketBank.toc`). Secreto `CF_API_KEY` creado en GitHub. Galería: `docs/img/capturas/` (0.1.0: `PocketBank-0.1.0-banco.png`).
-
----
-
-<!-- ===== COPIAR DESDE AQUÍ / COPY FROM HERE ===== -->
-
 **Your bank, always at hand.** PocketBank remembers what is in your bank so you can check it from anywhere, in a window that looks just like the game's own bank. A modern alternative to BankItems (bank viewer), which is no longer supported.
 
 > **Early release.** Tested in game, but young. New features arrive in small, frequent updates. Please report anything odd.
