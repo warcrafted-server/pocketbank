@@ -23,13 +23,17 @@ end
 local function widget(kind)
     local o = mock(kind)
     o.Show = function(self) self.shown = true end
-    o.Hide = function(self) self.shown = false end
+    o.Hide = function(self)
+        self.shown = false
+        if self.scripts and self.scripts.OnHide then self.scripts.OnHide(self) end
+    end
     o.IsShown = function(self) return self.shown end
     o.SetShown = function(self, v) self.shown = v and true or false end
     o.SetText = function(self, v) self.text = v end
     o.GetText = function(self) return self.text end
     o.SetTexture = function(self, v) self.texture = v end
     o.SetScript = function(self, name, fn) self.scripts = self.scripts or {}; self.scripts[name] = fn end
+    o.HookScript = function(self, name, fn) self.scripts = self.scripts or {}; self.scripts[name] = fn end
     o.CreateTexture = function(self) return widget("Texture") end
     o.CreateFontString = function(self) local f = widget("FontString"); ALL_FS[#ALL_FS + 1] = f; return f end
     o.GetFrameLevel = function() return 1 end
@@ -320,6 +324,105 @@ def main():
     check(lua.eval("PocketBankDB.settings.window") is None, "/pb reset forgets the position")
     check(lua.eval("PocketBankFrame.point[3]") == "TOPLEFT" and lua.eval("PocketBankFrame.point[5]") == -116,
           "/pb reset moves the window back to the default place")
+
+    # account-wide item search
+    lua.execute("""
+        local me = PB_NS.DB.GetChar(true)
+        me.bank = { scanned = 1794871143, tabs = { { id = 6, size = 48, items = {
+            [1] = { id = 700, count = 2, link = "|cff1eff00|Hitem:700|h[Arcane Dust]|h|r", icon = 701, quality = 2 },
+            [2] = { id = 701, count = 1, link = "|cffa335ee|Hitem:701|h[Rusted Blade]|h|r", icon = 702, quality = 4 },
+        } } } }
+        PocketBankDB.chars["Player-6947-0000AAAA"].bags = { scanned = 1794871143, tabs = { { id = 0, size = 20, items = {
+            [3] = { id = 700, count = 5, link = "|cff1eff00|Hitem:700|h[Arcane Dust]|h|r", icon = 701, quality = 2 },
+        } } } }
+        ROOT.radios[1].setSelected()
+        PocketBankFrame.sideTabs[1].scripts.OnClick()
+    """)
+    check(lua.eval("PocketBankFrameSearchBox ~= nil") is True, "the search box exists")
+    check(lua.eval("PocketBankFrameSearchBox.template") == "SearchBoxTemplate",
+          "the search box uses the client's SearchBoxTemplate")
+
+    lua.execute("""
+        local box = PocketBankFrameSearchBox
+        box:SetText('dust')
+        box.scripts.OnTextChanged(box)
+    """)
+    check(lua.eval("PocketBankFrame.title") == "Búsqueda en la cuenta", "typing shows the account search title")
+    check(lua.eval("PocketBankFrame.sideTabs[1].selected.shown") is False, "no side tab is selected in search mode")
+    check(lua.eval("PocketBankFrame.money.text or ''") == "", "the money is hidden in search mode")
+    check("1 objetos coinciden" in (lua.eval("PocketBankFrame.scanned.text or ''")), "the match count is shown")
+    found = lua.eval("""(function()
+        local out = {}
+        local n = 0
+        for _, b in ipairs(BUTTONS) do
+            if b.shown and b.icon then
+                n = n + 1
+                out[n] = { icon = b.icon.texture, count = b.count.text }
+            end
+        end
+        return n .. ':' .. tostring(out[1].icon) .. ':' .. tostring(out[1].count)
+    end)()""")
+    check(found == "1:701:7", f"one result with the counts of every character (got {found})")
+
+    lua.execute("""
+        local box = PocketBankFrameSearchBox
+        box:SetText('e')
+        box.scripts.OnTextChanged(box)
+    """)
+    found = lua.eval("""(function()
+        local out = {}
+        local n = 0
+        for _, b in ipairs(BUTTONS) do
+            if b.shown and b.icon then n = n + 1; out[n] = tostring(b.icon.texture) end
+        end
+        return n .. ':' .. table.concat(out, ':')
+    end)()""")
+    check(found == "2:702:701", f"results sorted by quality first, then name (got {found})")
+    check("2 objetos coinciden" in (lua.eval("PocketBankFrame.scanned.text or ''")), "both matches are counted")
+
+    lua.execute("""
+        local box = PocketBankFrameSearchBox
+        box:SetText('zzz')
+        box.scripts.OnTextChanged(box)
+    """)
+    text = lua.eval("PocketBankFrame.empty.text or ''")
+    check("Ningún personaje" in text and "zzz" in text, "no results shows the SEARCH_NONE notice")
+    check(lua.eval("PocketBankFrame.notice.shown") is True, "the notice is visible without results")
+    empty_slots = lua.eval("""(function()
+        local n = 0
+        for _, b in ipairs(BUTTONS) do if b.shown and b.icon then n = n + 1 end end
+        return n
+    end)()""")
+    check(empty_slots == 48, f"no results keeps the empty 8x6 grid (got {empty_slots})")
+
+    lua.execute("PocketBankFrame.sideTabs[1].scripts.OnClick()")
+    check(lua.eval("PocketBankFrameSearchBox.text or ''") == "", "clicking a side tab clears the search box")
+    check(lua.eval("PocketBankFrame.title") == "Banco de Charman", "clicking a side tab leaves search mode")
+    check(lua.eval("PocketBankFrame.money.text") == "coins:16454", "the money comes back after the search")
+    check(lua.eval("PocketBankFrame.sideTabs[1].selected.shown") is True, "the tab is selected again")
+
+    lua.execute("""
+        local box = PocketBankFrameSearchBox
+        box:SetText('dust')
+        box.scripts.OnTextChanged(box)
+        ROOT.radios[2].setSelected()
+    """)
+    check(lua.eval("PocketBankFrameSearchBox.text or ''") == "", "selecting a character clears the search box")
+    check(lua.eval("PocketBankFrame.title") == "Banco de Abel", "selecting a character leaves search mode")
+
+    lua.execute("""
+        local box = PocketBankFrameSearchBox
+        box:SetText('dust')
+        box.scripts.OnTextChanged(box)
+        PB_NS.ToggleWindow()
+    """)
+    check(lua.eval("PocketBankFrameSearchBox.text or ''") == "", "hiding the window clears the search box")
+    lua.execute("PB_NS.ToggleWindow()")
+
+    lua.execute("PocketBankFrame.sideTabs[3].scripts.OnClick()")
+    check(lua.eval("PocketBankFrameSearchBox.shown") is False, "the search box is hidden in the equipment view")
+    lua.execute("PocketBankFrame.sideTabs[1].scripts.OnClick()")
+    check(lua.eval("PocketBankFrameSearchBox.shown") is True, "the search box is shown again in the bank")
 
     if failures:
         print(f"\n{len(failures)} check(s) failed")

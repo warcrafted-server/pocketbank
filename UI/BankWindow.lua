@@ -25,11 +25,13 @@ local EQUIPMENT_ICON = "Interface\\Icons\\INV_Helmet_03"
 local QUALITY_BORDER = 130839
 local SLOT_HIGHLIGHT = 130718
 local ROCK_BACKGROUND = 374155
+local SEARCH_SLOT_ATLAS = "bags-item-slot64"
 
 local L = PB.L
 local frame
 local slots = {}
 local charKey
+local searchText = ""
 
 -- Each view is one saved section of the character shown in the same grid.
 local VIEWS = {
@@ -171,6 +173,51 @@ local function fillSlot(slot, item)
     end
 end
 
+-- Search -------------------------------------------------------------------
+
+local function trim(text)
+    if type(text) ~= "string" then return "" end
+    return (string.gsub(text, "^%s*(.-)%s*$", "%1"))
+end
+
+-- Clearing from a tab, the dropdown or OnHide must not leave the window in
+-- search mode, so the stored text goes first.
+local function clearSearch()
+    searchText = ""
+    local box = frame and frame.searchBox
+    if not box then return end
+    pcall(box.SetText, box, "")
+    if type(box.ClearFocus) == "function" then pcall(box.ClearFocus, box) end
+end
+
+local function createSearchBox()
+    local ok, box = pcall(CreateFrame, "EditBox", FRAME_NAME .. "SearchBox", frame, "SearchBoxTemplate")
+    if not ok or not box then
+        ok, box = pcall(CreateFrame, "EditBox", FRAME_NAME .. "SearchBox", frame, "InputBoxTemplate")
+    end
+    if not ok or not box then return nil end
+    box:SetSize(110, 20)
+    box:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -56, -33)
+    if type(box.SetAutoFocus) == "function" then pcall(box.SetAutoFocus, box, false) end
+    -- The placeholder lives in the template's own font string, when it has one.
+    pcall(function()
+        if box.Instructions then box.Instructions:SetText(L.SEARCH) end
+    end)
+    local function onTextChanged(self)
+        local gotText, text = pcall(self.GetText, self)
+        searchText = trim(gotText and text or "")
+        BankWindow:Refresh()
+    end
+    -- The template's own OnTextChanged drives the placeholder and the clear
+    -- button, so ours is added beside it instead of replacing it.
+    if type(box.HookScript) == "function" then
+        pcall(box.HookScript, box, "OnTextChanged", onTextChanged)
+    else
+        box:SetScript("OnTextChanged", onTextChanged)
+    end
+    return box
+end
+
 -- Side tabs -------------------------------------------------------------
 
 local function createSideTab(index, def)
@@ -206,6 +253,7 @@ local function createSideTab(index, def)
     tab:SetScript("OnLeave", slotOnLeave)
     tab:SetScript("OnClick", function()
         view = def
+        clearSearch()
         BankWindow:Refresh()
     end)
     return tab
@@ -226,6 +274,7 @@ end
 
 local function selectChar(key)
     charKey = key
+    clearSearch()
     BankWindow:Refresh()
 end
 
@@ -349,6 +398,9 @@ local function create()
         saveWindowPosition()
     end)
     frame:Hide()
+    if not (type(frame.HookScript) == "function" and pcall(frame.HookScript, frame, "OnHide", clearSearch)) then
+        frame:SetScript("OnHide", clearSearch)
+    end
 
     -- PortraitFrameTemplate brings the metal border, portrait, title and
     -- close button; the rock background and streaks are the bank's own.
@@ -375,6 +427,7 @@ local function create()
     frame.sideTabs = {}
     for index, def in ipairs(VIEWS) do frame.sideTabs[index] = createSideTab(index, def) end
     frame.selector = createSelector()
+    frame.searchBox = createSearchBox()
 
     local divider = frame:CreateTexture(nil, "ARTWORK")
     setAtlas(divider, "bank-divider")
@@ -468,7 +521,7 @@ local function flatten(tabs)
     return items, total
 end
 
-local function layout(total)
+local function layout(total, atlas)
     local rows = math.max(ROWS, math.ceil(total / COLUMNS))
     frame:SetHeight(HEIGHT + (rows - ROWS) * ROW_STEP)
     local y = SLOT_TOP - rows * ROW_STEP + 1
@@ -480,7 +533,7 @@ local function layout(total)
     for i = #slots + 1, shown do slots[i] = createSlot(frame, i) end
     for i, slot in ipairs(slots) do
         slot:SetShown(i <= shown)
-        setAtlas(slot.bg, view.slotAtlas)
+        setAtlas(slot.bg, atlas or view.slotAtlas)
     end
 end
 
@@ -488,13 +541,18 @@ function BankWindow:Refresh()
     if not frame then return end
     local char = currentChar()
     local isPlayer = viewedKey() == (PB.DB and PB.DB.GetCharKey())
+    -- A character search takes over the grid while it has text.
+    local searching = searchText ~= "" and not view.paperdoll
     setPortrait(char)
     updateSelector(char)
-    for _, tab in ipairs(frame.sideTabs) do tab.selected:SetShown(tab.view == view) end
+    for _, tab in ipairs(frame.sideTabs) do
+        tab.selected:SetShown(not searching and tab.view == view)
+    end
 
     local equipmentView = PB.UI.EquipmentView
     local paperdoll = view.paperdoll and equipmentView ~= nil
     for _, part in ipairs(frame.gridParts) do part:SetShown(not paperdoll) end
+    if frame.searchBox then frame.searchBox:SetShown(not paperdoll) end
     if paperdoll then
         for _, slot in ipairs(slots) do slot:Hide() end
         frame.notice:Hide()
@@ -505,6 +563,27 @@ function BankWindow:Refresh()
     end
     if equipmentView then equipmentView:Hide() end
     frame:SetWidth(WIDTH)
+
+    if searching and PB.Search then
+        local results, total = PB.Search.Find(searchText)
+        setTitle(L.SEARCH_TITLE)
+        layout(#results, SEARCH_SLOT_ATLAS)
+        for i, slot in ipairs(slots) do fillSlot(slot, results[i]) end
+        frame.notice:SetShown(total == 0)
+        if total == 0 then
+            frame.empty:SetText(string.format(L.SEARCH_NONE, searchText))
+            frame.scanned:SetText("")
+        else
+            frame.empty:SetText("")
+            if total > #results then
+                frame.scanned:SetText(string.format(L.SEARCH_MORE, #results, total))
+            else
+                frame.scanned:SetText(string.format(L.SEARCH_RESULTS, total))
+            end
+        end
+        if frame.moneyFrame then frame.moneyFrame:Hide() else frame.money:SetText("") end
+        return
+    end
 
     local section = char and char[view.key]
     local tabs = section and section.tabs or {}
