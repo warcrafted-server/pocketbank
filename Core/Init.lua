@@ -36,6 +36,7 @@ end
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_LOGIN")
+frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:RegisterEvent("PLAYER_MONEY")
 frame:RegisterEvent("PLAYER_LOGOUT")
 frame:SetScript("OnEvent", function(_, event, name)
@@ -44,7 +45,7 @@ frame:SetScript("OnEvent", function(_, event, name)
         if PB.DB then PB.DB.Init() end
         frame:UnregisterEvent("ADDON_LOADED")
     elseif PB.DB then
-        PB.DB.SaveCharMeta()
+        PB.DB.SaveCharMeta(event)
     end
 end)
 

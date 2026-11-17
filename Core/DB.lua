@@ -73,7 +73,7 @@ function DB.ListChars()
     return list
 end
 
-function DB.SaveCharMeta()
+function DB.SaveCharMeta(event)
     local char = DB.GetChar(true)
     if not char then return nil end
     local _, class = UnitClass("player")
@@ -88,7 +88,14 @@ function DB.SaveCharMeta()
     char.class = class
     char.faction = UnitFactionGroup("player")
     char.level = UnitLevel("player")
-    char.money = GetMoney()
+    local money = GetMoney()
+    if type(PocketBankDB.debug) == "table" and event then
+        PocketBankDB.debug.moneyAt = PocketBankDB.debug.moneyAt or {}
+        PocketBankDB.debug.moneyAt[event] = money
+    end
+    -- Saved money went to 0 for every character: GetMoney() is unreliable
+    -- while logging out, and the logout save overwrote the good value.
+    if event ~= "PLAYER_LOGOUT" then char.money = money end
     char.lastSeen = time()
     return char
 end

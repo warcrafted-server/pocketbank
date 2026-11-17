@@ -314,10 +314,19 @@ local function create()
     scanned:SetJustifyH("LEFT")
     frame.scanned = scanned
 
-    local empty = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    empty:SetPoint("CENTER", frame, "TOPLEFT", WIDTH / 2, SLOT_TOP - ROWS * ROW_STEP / 2)
+    -- The slots are child frames, so the message needs a frame above them.
+    local notice = CreateFrame("Frame", nil, frame)
+    notice:SetFrameLevel(frame:GetFrameLevel() + 5)
+    notice:SetSize(WIDTH - 80, 60)
+    notice:SetPoint("CENTER", frame, "TOPLEFT", WIDTH / 2, SLOT_TOP - ROWS * ROW_STEP / 2)
+    local shade = notice:CreateTexture(nil, "BACKGROUND")
+    shade:SetAllPoints()
+    shade:SetColorTexture(0, 0, 0, 0.75)
+    local empty = notice:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    empty:SetPoint("CENTER")
     empty:SetWidth(WIDTH - 120)
     frame.empty = empty
+    frame.notice = notice
 
     -- The template's border is a child frame drawn over the parent's own
     -- regions, so the money box needs a frame of its own above it.
@@ -410,6 +419,7 @@ function BankWindow:Refresh()
     layout(total)
     for i, slot in ipairs(slots) do fillSlot(slot, items[i]) end
 
+    frame.notice:SetShown(total == 0)
     if total > 0 then
         frame.empty:SetText("")
         frame.scanned:SetText(string.format(L.LAST_SCANNED, date(L.DATE_FORMAT, char.bank.scanned or 0)))

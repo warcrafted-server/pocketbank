@@ -112,6 +112,9 @@ def main():
     lua.execute("PocketBankDB = nil; FRAMES.__events = nil")
     # Fire ADDON_LOADED and PLAYER_LOGIN through every registered OnEvent.
     lua.execute("PB_NS.DB.Init(); PB_NS.DB.SaveCharMeta()")
+    lua.execute("local real = GetMoney; GetMoney = function() return 0 end; "
+                "PB_NS.DB.SaveCharMeta('PLAYER_LOGOUT'); GetMoney = real")
+    check(lua.eval("PB_NS.DB.GetChar(false).money") == 16454, "logout does not overwrite the saved money")
     lua.execute("""
         local char = PB_NS.DB.GetChar(true)
         char.bank = { scanned = 1794871143, tabs = { { id = 6, name = 'Pestaña 1', icon = 134400, size = 48, items = {
