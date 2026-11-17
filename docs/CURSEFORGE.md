@@ -8,11 +8,11 @@
 - **Visit the bank once:** PocketBank saves its contents, bank bags included. It saves again every time you open the bank.
 - **See it from anywhere:** click the minimap button or type **/pb** to open your bank window. **Esc** closes it.
 - **Native look:** same frame, same slots and same layout as the game's bank, your bank bags as extra rows, the date of your last visit and your money.
+- **All your characters:** pick any character from the dropdown at the top of the window to see their bank and money, even when you are not logged in with them.
 - **Item tooltips** on hover, and **Shift + click** links the item in chat.
 - English and Spanish.
 
 ## Coming next
-- The bank of your other characters, even when you are not logged in with them.
 - Bags, equipment, item search and tooltips showing what your other characters hold.
 - Movable window and an options panel.
 - Guild bank.
@@ -35,11 +35,11 @@ Free for non-commercial use (WNCL-1.0). Source: https://github.com/warcrafted-se
 - **Visita el banco una vez:** PocketBank guarda su contenido, también el de las bolsas del banco. Lo vuelve a guardar cada vez que abres el banco.
 - **Consúltalo desde cualquier sitio:** pulsa el botón del minimapa o escribe **/pb** para abrir la ventana de tu banco. **Esc** la cierra.
 - **Aspecto nativo:** mismo marco, mismas casillas y misma disposición que el banco del juego, las bolsas del banco como filas extra, la fecha de tu última visita y tu dinero.
+- **Todos tus personajes:** elige cualquier personaje en el desplegable de arriba de la ventana para ver su banco y su dinero, aunque no estés conectado con él.
 - **Tooltip de cada objeto** al pasar el ratón, y **Mayús + clic** lo enlaza en el chat.
 - Español e inglés.
 
 ## Próximamente
-- El banco de tus otros personajes, aunque no estés conectado con ellos.
 - Bolsas, equipo, buscador de objetos y tooltips que indican qué tienen tus otros personajes.
 - Ventana movible y panel de opciones.
 - Banco de hermandad.

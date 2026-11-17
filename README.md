@@ -4,9 +4,9 @@
 
 Addon para **WoW Forever** (Interface 16001) que muestra el contenido de tu banco, bolsas y equipo, también el de los demás personajes de tu cuenta, sin tener que visitar el banco. Alternativa moderna a BankItems, que ya no tiene soporte.
 
-> **Estado:** versión 0.1.0, la primera. Por ahora muestra el banco del personaje con el que juegas; los demás personajes, las bolsas, el equipo y el resto llegan en próximas versiones.
+> **Estado:** versión 0.2.0. Muestra el banco de cada personaje que lo haya visitado; las bolsas, el equipo y el resto llegan en próximas versiones.
 
-![Ventana de PocketBank](docs/img/capturas/PocketBank-0.1.0-banco.png)
+![Ventana de PocketBank](docs/img/capturas/PocketBank-0.2.0-personajes.png)
 
 ## Requisitos
 
@@ -20,7 +20,8 @@ Desde la aplicación de CurseForge (elige tu instalación de Forever) o en https
 
 1. Visita el banco una vez: PocketBank guarda su contenido y lo dice en el chat («Banco guardado (N objetos)»). Se vuelve a guardar cada vez que lo abres.
 2. Desde cualquier sitio, pulsa el botón del minimapa o escribe `/pb` para abrir o cerrar la ventana del banco. `Esc` también la cierra.
-3. Pasa el ratón por un objeto para ver su tooltip; Mayús + clic lo enlaza en el chat.
+3. Para ver el banco de otro personaje, elígelo en el desplegable de arriba de la ventana. Cada personaje tiene que haber visitado el banco una vez.
+4. Pasa el ratón por un objeto para ver su tooltip; Mayús + clic lo enlaza en el chat.
 
 El botón del minimapa se puede arrastrar alrededor del minimapa y recuerda su posición.
 

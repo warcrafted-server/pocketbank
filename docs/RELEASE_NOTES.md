@@ -1,3 +1,23 @@
+## 0.2.0 (2026-11-17) — English
+
+### Added
+- **Your other characters:** a dropdown at the top of the window lists every character that has visited the bank, with their full name in class colors. Pick one to see their bank, money and last visit, even when you are not logged in with them. The window remembers your choice.
+- A clear notice for characters that have not visited the bank yet.
+
+### Fixed
+- Saved money could reset to 0 after logging out.
+- The "no data" notice was hidden behind the slots.
+
+## 0.2.0 (2026-11-17) — Español
+
+### Añadido
+- **Tus otros personajes:** un desplegable en la parte de arriba de la ventana lista todos los personajes que han visitado el banco, con su nombre completo en el color de su clase. Elige uno para ver su banco, su dinero y su última visita, aunque no estés conectado con él. La ventana recuerda tu elección.
+- Un aviso claro para los personajes que aún no han visitado el banco.
+
+### Corregido
+- El dinero guardado podía quedar a 0 al cerrar sesión.
+- El aviso de «sin datos» quedaba tapado por las casillas.
+
 ## 0.1.0 (2026-11-17) — English
 
 ### Added

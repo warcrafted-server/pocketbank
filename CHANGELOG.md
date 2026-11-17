@@ -5,6 +5,18 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+## [0.2.0] - 2026-11-17
+
+### Añadido
+
+- Selector de personaje en la ventana: desplegable con todos los personajes guardados (nombre completo en el color de su clase, el conectado primero) que muestra el banco, el dinero y la fecha de la última visita del elegido, con el icono de su clase como retrato. Recuerda el elegido al cerrar y abrir la ventana.
+- Aviso propio para los personajes que aún no han visitado el banco.
+
+### Corregido
+
+- El dinero guardado podía quedar a 0 al cerrar sesión; ya no se sobrescribe al salir y se guarda también al entrar en el mundo.
+- El aviso de «sin datos» quedaba tapado por las casillas; ahora se ve encima, sobre una franja oscura.
+
 ## [0.1.0] - 2026-11-17
 
 ### Añadido
