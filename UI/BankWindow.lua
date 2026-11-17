@@ -328,21 +328,59 @@ end
 
 -- Frame -------------------------------------------------------------------
 
+-- Four corners plus the edges between them, like the client's border
+-- layouts: the edges stretch, so the frame can grow a row at a time.
+local function addBorder(area, layer, pieces, inset, thickness)
+    local corners = {}
+    for _, point in ipairs({ "TOPLEFT", "TOPRIGHT", "BOTTOMLEFT", "BOTTOMRIGHT" }) do
+        local t = area:CreateTexture(nil, layer)
+        setAtlas(t, pieces[point], true)
+        local x = point:find("LEFT") and inset.x or -inset.x
+        local y = point:find("TOP") and inset.top or inset.bottom
+        t:SetPoint(point, x, y)
+        corners[point] = t
+    end
+    local edges = {
+        { pieces.top, "TOPLEFT", "TOPRIGHT", "TOPRIGHT", "TOPLEFT", true },
+        { pieces.bottom, "BOTTOMLEFT", "BOTTOMRIGHT", "BOTTOMRIGHT", "BOTTOMLEFT", true },
+        { pieces.left, "TOPLEFT", "BOTTOMLEFT", "BOTTOMLEFT", "TOPLEFT", false },
+        { pieces.right, "TOPRIGHT", "BOTTOMRIGHT", "BOTTOMRIGHT", "TOPRIGHT", false },
+    }
+    for _, e in ipairs(edges) do
+        local t = area:CreateTexture(nil, layer)
+        setAtlas(t, e[1])
+        t:SetPoint(e[2], corners[e[2]], e[3])
+        t:SetPoint(e[4], corners[e[4]], e[5])
+        if e[6] then t:SetHeight(thickness) else t:SetWidth(thickness) end
+    end
+end
+
+-- Sizes and offsets from a /pb frames dump of the client's bank (480x460):
+-- the shadow corners sit 2 px in and 22 px down, the inner border frames the
+-- 480x410 area above the money footer.
 local function addShadows(parent)
     local area = CreateFrame("Frame", nil, parent)
     area:SetPoint("TOPLEFT", 0, 0)
     area:SetPoint("BOTTOMRIGHT", 0, FOOTER_HEIGHT)
-    local corners = {
-        { "bank-frame-shadow-cornertopleft", "TOPLEFT" },
-        { "bank-frame-shadow-cornertopright", "TOPRIGHT" },
-        { "bank-frame-shadow-cornerbottomleft", "BOTTOMLEFT" },
-        { "bank-frame-shadow-cornerbottomright", "BOTTOMRIGHT" },
-    }
-    for _, c in ipairs(corners) do
-        local t = area:CreateTexture(nil, "BORDER")
-        setAtlas(t, c[1], true)
-        t:SetPoint(c[2])
-    end
+    addBorder(area, "BORDER", {
+        TOPLEFT = "bank-frame-shadow-cornertopleft", TOPRIGHT = "bank-frame-shadow-cornertopright",
+        BOTTOMLEFT = "bank-frame-shadow-cornerbottomleft", BOTTOMRIGHT = "bank-frame-shadow-cornerbottomright",
+        top = "_bank-frame-horiz-shadow", bottom = "_bank-frame-horiz-shadow",
+        left = "!bank-frame-vert-shadow", right = "!bank-frame-vert-shadow",
+    }, { x = 2, top = -22, bottom = 2 }, 17)
+    return area
+end
+
+local function addInnerBorder(parent)
+    local area = CreateFrame("Frame", nil, parent)
+    area:SetPoint("TOPLEFT", 0, -20)
+    area:SetPoint("BOTTOMRIGHT", 0, FOOTER_HEIGHT)
+    addBorder(area, "BORDER", {
+        TOPLEFT = "UI-Frame-InnerTopLeft", TOPRIGHT = "UI-Frame-InnerTopRight",
+        BOTTOMLEFT = "UI-Frame-InnerBotLeftCorner", BOTTOMRIGHT = "UI-Frame-InnerBotRight",
+        top = "_UI-Frame-InnerTopTile", bottom = "_UI-Frame-InnerBotTile",
+        left = "!UI-Frame-InnerLeftTile", right = "!UI-Frame-InnerRightTile",
+    }, { x = 0, top = 0, bottom = 0 }, 3)
     return area
 end
 
@@ -423,6 +461,7 @@ local function create()
     streaks:SetHeight(43)
 
     local shadows = addShadows(frame)
+    local innerBorder = addInnerBorder(frame)
 
     frame.sideTabs = {}
     for index, def in ipairs(VIEWS) do frame.sideTabs[index] = createSideTab(index, def) end
@@ -477,7 +516,8 @@ local function create()
     end
 
     -- Everything the bank and bags grid owns, hidden in the equipment view.
-    frame.gridParts = { rock, background, streaks, shadows, divider, scanned, footer }
+    frame.gridParts = { rock, background, streaks, shadows, innerBorder, divider, scanned, footer }
+    frame.footer = footer
 
     if type(UISpecialFrames) == "table" then UISpecialFrames[#UISpecialFrames + 1] = FRAME_NAME end
     return frame
@@ -581,7 +621,8 @@ function BankWindow:Refresh()
                 frame.scanned:SetText(string.format(L.SEARCH_RESULTS, total))
             end
         end
-        if frame.moneyFrame then frame.moneyFrame:Hide() else frame.money:SetText("") end
+        -- The money box belongs to one character: an empty box looks broken.
+        frame.footer:Hide()
         return
     end
 

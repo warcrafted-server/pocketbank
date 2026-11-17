@@ -349,7 +349,7 @@ def main():
     """)
     check(lua.eval("PocketBankFrame.title") == "Búsqueda en la cuenta", "typing shows the account search title")
     check(lua.eval("PocketBankFrame.sideTabs[1].selected.shown") is False, "no side tab is selected in search mode")
-    check(lua.eval("PocketBankFrame.money.text or ''") == "", "the money is hidden in search mode")
+    check(lua.eval("PocketBankFrame.footer.shown") is False, "the money footer is hidden in search mode")
     check("1 objetos coinciden" in (lua.eval("PocketBankFrame.scanned.text or ''")), "the match count is shown")
     found = lua.eval("""(function()
         local out = {}
