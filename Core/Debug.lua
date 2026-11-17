@@ -64,6 +64,21 @@ local function collect()
     add("TooltipDataProcessor: %s", type(TooltipDataProcessor))
     add("Enum.TooltipDataType: %s", type(Enum and Enum.TooltipDataType))
 
+    -- API the next versions depend on: options widgets, mail, currencies,
+    -- guild bank, professions and rested XP.
+    if type(Settings) == "table" then add("Settings: %s", table.concat(sortedKeys(Settings), ", ")) end
+    for _, name in ipairs({ "CreateSettingsButtonInitializer", "CreateSettingsListSectionHeaderInitializer",
+        "StaticPopup_Show", "StaticPopupDialogs", "MenuUtil", "GetInboxNumItems", "GetInboxHeaderInfo",
+        "GetInboxItem", "GetInboxItemLink", "CheckInbox", "C_Mail", "C_CurrencyInfo", "GetCurrencyListSize",
+        "GetCurrencyListInfo", "C_GuildBank", "GetNumGuildBankTabs", "GetGuildBankItemLink",
+        "GetGuildBankItemInfo", "GetProfessions", "GetProfessionInfo", "C_TradeSkillUI",
+        "GetXPExhaustion", "GetRestState" }) do
+        add("%s: %s", name, type(_G[name]))
+    end
+    for _, name in ipairs({ "C_Mail", "C_CurrencyInfo", "C_GuildBank", "C_TradeSkillUI", "MenuUtil" }) do
+        if type(_G[name]) == "table" then add("%s: %s", name, table.concat(sortedKeys(_G[name]), ", ")) end
+    end
+
     for _, name in ipairs({ "BANK_CONTAINER", "REAGENTBANK_CONTAINER", "KEYRING_CONTAINER",
         "NUM_BAG_SLOTS", "NUM_BANKBAGSLOTS", "NUM_BANKGENERIC_SLOTS",
         "NUM_TOTAL_EQUIPPED_BAG_SLOTS", "NUM_TOTAL_BAG_FRAMES" }) do
