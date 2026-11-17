@@ -34,6 +34,11 @@ LOCALE = "enUS"
 
 PocketBankDB = { schemaVersion = 1, chars = {} }
 
+YES = "Yes"
+NO = "No"
+ACCEPT = "Accept"
+CANCEL = "Cancel"
+
 SETTINGS = { categories = {}, proxies = {}, checkboxes = {}, registered = {}, opened = {} }
 
 function print(...)
@@ -103,9 +108,14 @@ function InstallSettings()
     Settings = {}
     function Settings.RegisterVerticalLayoutCategory(name)
         local category = { name = name, id = #SETTINGS.categories + 1 }
+        local layout = { initializers = {} }
+        function layout:AddInitializer(initializer)
+            self.initializers[#self.initializers + 1] = initializer
+        end
         function category:GetID() return self.id end
+        category.layout = layout
         SETTINGS.categories[#SETTINGS.categories + 1] = category
-        return category
+        return category, layout
     end
     function Settings.RegisterProxySetting(category, variable, kind, label, defaultValue, getter, setter)
         local setting = {
@@ -133,6 +143,84 @@ function SpyOnRefresh()
     PB.UI.MinimapButton.Refresh = function(self)
         REFRESHES = REFRESHES + 1
         return real(self)
+    end
+end
+
+PLAYER_GUID = "Player-1"
+DELETES = {}
+POPUPS = {}
+MENUS = {}
+FOCUS = {}
+UIParent = CreateFrame("Frame")
+RAID_CLASS_COLORS = {
+    MAGE = { colorStr = "ff69ccf0" },
+    WARRIOR = { colorStr = "ffc79c6e" },
+}
+
+function GetMouseFoci() return { FOCUS } end
+
+-- Stand-in for the saved characters, so the delete path can be exercised.
+function InstallDB()
+    PocketBankDB.chars = {
+        ["Player-1"] = { guid = "Player-1", name = "Tester" },
+        ["Player-2"] = { guid = "Player-2", name = "Altone", class = "WARRIOR" },
+        ["Player-3"] = { guid = "Player-3", name = "Alttwo", class = "MAGE" },
+    }
+    PB.DB = {}
+    function PB.DB.GetCharKey() return PLAYER_GUID end
+    function PB.DB.ListChars()
+        local list = {}
+        for key, char in pairs(PocketBankDB.chars) do
+            list[#list + 1] = { key = key, char = char }
+        end
+        table.sort(list, function(a, b)
+            if a.key == PLAYER_GUID then return true end
+            if b.key == PLAYER_GUID then return false end
+            return a.key < b.key
+        end)
+        return list
+    end
+    function PB.DB.DeleteChar(key)
+        DELETES[#DELETES + 1] = key
+        if key == PLAYER_GUID or PocketBankDB.chars[key] == nil then return false end
+        PocketBankDB.chars[key] = nil
+        PB.FireCallback("CHAR_DELETED", key)
+        return true
+    end
+    function PB.DB.SaveCharMeta() end
+end
+
+function InstallMenu()
+    MenuUtil = {}
+    function MenuUtil.CreateContextMenu(owner, generator)
+        local root = { owner = owner, buttons = {} }
+        function root:CreateTitle(text) self.title = text end
+        function root:CreateButton(text, onClick)
+            self.buttons[#self.buttons + 1] = { text = text, click = onClick }
+        end
+        MENUS[#MENUS + 1] = root
+        generator(root, root)
+        return root
+    end
+end
+
+function InstallPopups()
+    StaticPopupDialogs = {}
+    function StaticPopup_Show(which, text, text2, data)
+        POPUPS[#POPUPS + 1] = { which = which, text = text, text2 = text2, data = data }
+        return POPUPS[#POPUPS]
+    end
+end
+
+function InstallInitializers()
+    function CreateSettingsListSectionHeaderInitializer(text)
+        return { kind = "header", text = text }
+    end
+    function CreateSettingsButtonInitializer(name, buttonText, onClick, tooltip, disabled)
+        return {
+            kind = "button", name = name, buttonText = buttonText,
+            onClick = onClick, tooltip = tooltip, disabled = disabled,
+        }
     end
 end
 """
@@ -371,6 +459,135 @@ def test_registration_error_is_contained():
     check(last_message(lua) == UNAVAILABLE, "a failed registration warns instead of erroring")
 
 
+SAVED_DATA_SETUP = "InstallDB()\nInstallMenu()\nInstallPopups()\nInstallInitializers()"
+
+DELETE_TIP = ("Removes the saved bank, bags and gear of a character you have deleted or "
+              "no longer play. The character you are playing cannot be removed.")
+
+HEADER = "SETTINGS.categories[1].layout.initializers[1]"
+BUTTON = "SETTINGS.categories[1].layout.initializers[2]"
+DIALOG = "StaticPopupDialogs.POCKETBANK_DELETE_CHAR"
+
+
+def click_delete(lua):
+    lua.execute(BUTTON + ".onClick()")
+
+
+def test_saved_data_section():
+    lua = boot(pre=SAVED_DATA_SETUP)
+    check(value(lua, "#SETTINGS.categories[1].layout.initializers") == 2,
+          "the layout gets a section header and a delete button")
+    check(value(lua, HEADER + ".kind") == "header", "the saved data section starts with a header")
+    check(value(lua, HEADER + ".text") == "Saved data",
+          "the header is titled in the player's language")
+    check(value(lua, BUTTON + ".kind") == "button", "the delete button goes after the header")
+    check(value(lua, BUTTON + ".name") == "Delete a character",
+          "the button row is named in the player's language")
+    check(value(lua, BUTTON + ".buttonText") == "Delete...", "the button offers to delete")
+    check(value(lua, BUTTON + ".tooltip") == DELETE_TIP, "the button explains what it removes")
+    check(value(lua, "#SETTINGS.checkboxes") == 2 and value(lua, "#SETTINGS.registered") == 1,
+          "the checkboxes and the category are still registered")
+
+
+def test_delete_without_other_characters():
+    lua = boot(pre=SAVED_DATA_SETUP)
+    lua.execute('PocketBankDB.chars["Player-2"] = nil\nPocketBankDB.chars["Player-3"] = nil')
+    click_delete(lua)
+    check(last_message(lua) == "PocketBank: there are no other characters to delete.",
+          "a lone character has nothing to delete")
+    check(value(lua, "#MENUS") == 0, "no menu is opened")
+    check(value(lua, "#POPUPS") == 0, "no confirmation is shown")
+
+
+def test_delete_menu_lists_the_other_characters():
+    lua = boot(pre=SAVED_DATA_SETUP)
+    click_delete(lua)
+    check(value(lua, "#MENUS") == 1, "the button opens one menu")
+    check(value(lua, "MENUS[1].owner == FOCUS") is True,
+          "the menu is anchored to the frame under the mouse")
+    check(value(lua, "MENUS[1].title") == "Delete a character", "the menu repeats what it does")
+    check(value(lua, "#MENUS[1].buttons") == 2, "only the two other characters are listed")
+    first = value(lua, "MENUS[1].buttons[1].text")
+    second = value(lua, "MENUS[1].buttons[2].text")
+    check(first == "|cffc79c6eAltone|r" and second == "|cff69ccf0Alttwo|r",
+          "the characters are listed with their class colour")
+    check("Tester" not in first and "Tester" not in second,
+          "the logged-in character is never offered")
+
+    lua.execute("GetMouseFoci = nil")
+    click_delete(lua)
+    check(value(lua, "MENUS[2].owner == UIParent") is True,
+          "without GetMouseFoci the menu falls back to UIParent")
+
+
+def test_delete_confirmation():
+    lua = boot(pre=SAVED_DATA_SETUP)
+    click_delete(lua)
+    lua.execute("MENUS[1].buttons[1].click()")
+    check(value(lua, "#POPUPS") == 1, "choosing a character asks for confirmation")
+    check(value(lua, "POPUPS[1].which") == "POCKETBANK_DELETE_CHAR", "the addon dialog is shown")
+    check(value(lua, "POPUPS[1].text") == "|cffc79c6eAltone|r",
+          "the confirmation names the character with its class colour")
+    check(value(lua, "POPUPS[1].data.key") == "Player-2", "the confirmation carries the character key")
+    check(value(lua, "POPUPS[1].data.name") == "Altone", "the confirmation carries the plain name")
+    check(value(lua, "PocketBankDB.chars['Player-2'] ~= nil") is True,
+          "nothing is deleted before the player confirms")
+
+    check(value(lua, DIALOG + ".text") == "Delete the saved data of %s?\nThis cannot be undone.",
+          "the dialog text asks before deleting")
+    check(value(lua, DIALOG + ".OnAccept") is not None, "the dialog accepts deletions")
+    check(value(lua, DIALOG + ".button1") is not None and value(lua, DIALOG + ".button2") is not None,
+          "the dialog offers both buttons")
+    check(value(lua, DIALOG + ".timeout") == 0, "the dialog never closes on its own")
+    check(value(lua, DIALOG + ".hideOnEscape") is True and value(lua, DIALOG + ".showAlert") is True,
+          "the dialog behaves like a warning popup")
+    check(value(lua, DIALOG + ".preferredIndex") == 3, "the dialog uses the addon popup slot")
+
+    lua.execute(DIALOG + ".OnAccept({}, POPUPS[1].data)")
+    check(value(lua, "PocketBankDB.chars['Player-2'] == nil") is True,
+          "accepting deletes the saved data")
+    check(value(lua, "DELETES[1]") == "Player-2", "the deletion goes through PB.DB.DeleteChar")
+    check(last_message(lua) == "PocketBank: data of Altone deleted.",
+          "the player is told what was deleted")
+    check(value(lua, "PocketBankDB.chars['Player-3'] ~= nil") is True,
+          "the other characters are left alone")
+
+
+def test_delete_cancelled():
+    lua = boot(pre=SAVED_DATA_SETUP)
+    click_delete(lua)
+    lua.execute("MENUS[1].buttons[2].click()")
+    check(value(lua, "#POPUPS") == 1, "the confirmation is shown for the second character")
+    lua.execute("local dialog = StaticPopupDialogs.POCKETBANK_DELETE_CHAR\n"
+                "if dialog.OnCancel then dialog.OnCancel({}, POPUPS[1].data) end")
+    check(value(lua, "#DELETES") == 0, "dismissing the confirmation deletes nothing")
+    check(value(lua, "PocketBankDB.chars['Player-3'] ~= nil") is True, "the character is still saved")
+
+    lua.execute(DIALOG + ".OnAccept({}, { key = 'Player-1', name = 'Tester' })")
+    check(value(lua, "#DELETES") == 1 and value(lua, "PocketBankDB.chars['Player-1'] ~= nil") is True,
+          "the logged-in character cannot be deleted from the popup")
+    check(value(lua, "#CHAT") == 0, "a refused deletion prints nothing")
+
+
+def test_without_saved_data_api():
+    lua = boot()
+    check(value(lua, "#SETTINGS.checkboxes") == 2, "the checkboxes work without the initializers")
+    check(value(lua, "#SETTINGS.registered") == 1, "the category is still handed to the client")
+    check(value(lua, "#SETTINGS.categories[1].layout.initializers") == 0,
+          "no section is added when the client lacks the initializers")
+
+    lua = boot(pre="InstallDB()\nInstallPopups()\nInstallInitializers()")
+    click_delete(lua)
+    check(value(lua, "#MENUS") == 0, "a client without MenuUtil opens no menu")
+    check(last_message(lua) == UNAVAILABLE, "the player is warned instead of hitting an error")
+
+    lua = boot(pre="InstallDB()\nInstallMenu()\nInstallInitializers()")
+    click_delete(lua)
+    lua.execute("MENUS[1].buttons[1].click()")
+    check(value(lua, "#DELETES") == 0, "a client without StaticPopup_Show deletes nothing")
+    check(last_message(lua) == UNAVAILABLE, "the player is warned instead of hitting an error")
+
+
 def main():
     check_compiles()
     test_toc_lists_the_file()
@@ -382,6 +599,12 @@ def main():
     test_without_settings_api()
     test_partial_settings_api()
     test_registration_error_is_contained()
+    test_saved_data_section()
+    test_delete_without_other_characters()
+    test_delete_menu_lists_the_other_characters()
+    test_delete_confirmation()
+    test_delete_cancelled()
+    test_without_saved_data_api()
     if failures:
         print(f"\n{len(failures)} check(s) failed")
         return 1
