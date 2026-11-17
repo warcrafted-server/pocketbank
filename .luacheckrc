@@ -30,6 +30,8 @@ read_globals = {
     "C_Timer",
     "CreateFrame",
     "GameTooltip",
+    "TooltipDataProcessor",
+    "ItemRefTooltip",
     "Minimap",
     "GetAddOnMetadata",
     "GetLocale",
