@@ -34,6 +34,9 @@ local function widget(kind)
     o.CreateFontString = function(self) local f = widget("FontString"); ALL_FS[#ALL_FS + 1] = f; return f end
     o.GetFrameLevel = function() return 1 end
     o.SetHeight = function(self, h) self.height = h end
+    o.SetupMenu = function(self, gen) self.menuGen = gen end
+    o.PortraitContainer = false
+    o.OverrideText = function(self, t) self.overrideText = t end
     o.SetTitle = function(self, v) self.title = v end
     return o
 end
@@ -46,6 +49,7 @@ function CreateFrame(kind, name, parent, template)
     f.shown = true
     f.template = template
     if kind == "Button" then BUTTONS[#BUTTONS + 1] = f end
+    if kind == "DropdownButton" then DROPDOWN = f end
     if name then _G[name] = f; FRAMES[name] = f end
     return f
 end
@@ -172,6 +176,44 @@ def main():
         return table.concat(out, '|')
     end)()""")
     check("Aún sin datos" in texts, "empty state when the bank was never visited")
+
+    # 0.2.0: other characters
+    lua.execute("""
+        PocketBankDB.chars["Player-6947-0000AAAA"] = { guid = "Player-6947-0000AAAA", name = "Zelda", fullName = "Zelda Brasaviva",
+            class = "MAGE", money = 500, bank = { scanned = 1794871143, tabs = { { id = 6, size = 48, items = {
+            [3] = { id = 1, count = 5, link = "item:1", icon = 111, quality = 1 } } } } } }
+        PocketBankDB.chars["Player-6947-0000BBBB"] = { guid = "Player-6947-0000BBBB", name = "Abel", fullName = "Abel Sinbanco", class = "WARRIOR" }
+    """)
+    order = lua.eval("(function() local t = {} for _, e in ipairs(PB_NS.DB.ListChars()) do t[#t + 1] = e.key end return table.concat(t, ',') end)()")
+    check(order == "Player-6947-011E3126,Player-6947-0000BBBB,Player-6947-0000AAAA", f"current character first, then by name ({order})")
+    check(lua.eval("DROPDOWN ~= nil and DROPDOWN.menuGen ~= nil") is True, "native dropdown with a menu")
+    lua.execute("""
+        ROOT = { radios = {} }
+        function ROOT:CreateRadio(text, isSelected, setSelected) self.radios[#self.radios + 1] = { text = text, isSelected = isSelected, setSelected = setSelected } end
+        DROPDOWN.menuGen(DROPDOWN, ROOT)
+    """)
+    check(lua.eval("#ROOT.radios") == 3, "one menu entry per saved character")
+    check(lua.eval("ROOT.radios[1].isSelected()") is True, "logged-in character selected by default")
+    lua.execute("ROOT.radios[3].setSelected()")
+    check(lua.eval("PocketBankFrame.title") == "Banco de Zelda", "selecting a character shows its bank")
+    check("Zelda Brasaviva" in (lua.eval("DROPDOWN.overrideText") or ""), "dropdown shows the full two-part name")
+    texts = lua.eval("""(function()
+        local out = {}
+        for _, fs in ipairs(ALL_FS) do out[#out + 1] = tostring(fs.text) end
+        return table.concat(out, '|')
+    end)()""")
+    check("coins:500" in texts, "money of the selected character")
+    slot3 = lua.eval("(function() local n = 0; for _, b in ipairs(BUTTONS) do if b.icon then n = n + 1; if n == 3 then return b.icon.texture end end end end)()")
+    check(slot3 == 111, "items of the selected character")
+    lua.execute("ROOT.radios[2].setSelected()")
+    texts = lua.eval("""(function()
+        local out = {}
+        for _, fs in ipairs(ALL_FS) do out[#out + 1] = tostring(fs.text) end
+        return table.concat(out, '|')
+    end)()""")
+    check("Entra con él y visita el banco" in texts, "other character without bank data")
+    lua.execute("PB_NS.ToggleWindow(); PB_NS.ToggleWindow()")
+    check(lua.eval("PocketBankFrame.title") == "Banco de Abel", "reopening keeps the selected character")
 
     if failures:
         print(f"\n{len(failures)} check(s) failed")

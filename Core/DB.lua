@@ -54,6 +54,25 @@ function DB.GetCharByKey(key)
     return type(PocketBankDB) == "table" and PocketBankDB.chars and PocketBankDB.chars[key] or nil
 end
 
+-- Every saved character as { key, char }: the logged-in one first, the rest
+-- by name.
+function DB.ListChars()
+    local list = {}
+    if type(PocketBankDB) ~= "table" or type(PocketBankDB.chars) ~= "table" then return list end
+    local current = DB.GetCharKey()
+    for key, char in pairs(PocketBankDB.chars) do
+        list[#list + 1] = { key = key, char = char }
+    end
+    table.sort(list, function(a, b)
+        if a.key == current then return true end
+        if b.key == current then return false end
+        local na = a.char.fullName or a.char.name or a.key
+        local nb = b.char.fullName or b.char.name or b.key
+        return na < nb
+    end)
+    return list
+end
+
 function DB.SaveCharMeta()
     local char = DB.GetChar(true)
     if not char then return nil end

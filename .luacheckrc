@@ -10,6 +10,7 @@ globals = {
 }
 
 read_globals = {
+    "RAID_CLASS_COLORS",
     "ChatEdit_InsertLink",
     "ChatFrame_OpenChat",
     "ChatFrameUtil",

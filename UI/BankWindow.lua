@@ -183,6 +183,72 @@ local function createSideTab()
     return tab
 end
 
+-- Character selector -----------------------------------------------------
+
+local function viewedKey()
+    return charKey or (PB.DB and PB.DB.GetCharKey())
+end
+
+local function charLabel(char, key)
+    local name = char.fullName or char.name or key
+    local colors = RAID_CLASS_COLORS and char.class and RAID_CLASS_COLORS[char.class]
+    if colors and colors.colorStr then return "|c" .. colors.colorStr .. name .. "|r" end
+    return name
+end
+
+local function selectChar(key)
+    charKey = key
+    BankWindow:Refresh()
+end
+
+local function createSelector()
+    -- WowStyle1DropdownTemplate is the dropdown the client itself uses (its
+    -- atlases appear in the bank's tab settings); fall back to a button that
+    -- cycles through the characters if this build lacks it.
+    local ok, dropdown = pcall(CreateFrame, "DropdownButton", nil, frame, "WowStyle1DropdownTemplate")
+    if ok and dropdown and type(dropdown.SetupMenu) == "function" then
+        dropdown:SetWidth(190)
+        dropdown:SetPoint("TOPLEFT", frame, "TOPLEFT", 70, -30)
+        dropdown:SetupMenu(function(_, root)
+            for _, entry in ipairs(PB.DB.ListChars()) do
+                root:CreateRadio(charLabel(entry.char, entry.key),
+                    function() return entry.key == viewedKey() end,
+                    function() selectChar(entry.key) end)
+            end
+        end)
+        return { dropdown = dropdown }
+    end
+
+    local button = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+    button:SetSize(190, 22)
+    button:SetPoint("TOPLEFT", frame, "TOPLEFT", 70, -30)
+    button:SetScript("OnClick", function()
+        local list = PB.DB.ListChars()
+        if #list == 0 then return end
+        local nextIndex = 1
+        for i, entry in ipairs(list) do
+            if entry.key == viewedKey() then nextIndex = i % #list + 1 end
+        end
+        selectChar(list[nextIndex].key)
+    end)
+    return { button = button }
+end
+
+local function updateSelector(char)
+    local selector = frame.selector
+    if not selector then return end
+    local text = char and charLabel(char, viewedKey()) or ""
+    if selector.dropdown then
+        local dropdown = selector.dropdown
+        if type(dropdown.GenerateMenu) == "function" then pcall(dropdown.GenerateMenu, dropdown) end
+        if type(dropdown.OverrideText) == "function" then pcall(dropdown.OverrideText, dropdown, text) end
+        dropdown:SetShown(#PB.DB.ListChars() > 0)
+    else
+        selector.button:SetText(text)
+        selector.button:SetShown(#PB.DB.ListChars() > 1)
+    end
+end
+
 -- Frame -------------------------------------------------------------------
 
 local function addShadows(parent)
@@ -236,6 +302,7 @@ local function create()
     addShadows(frame)
 
     createSideTab()
+    frame.selector = createSelector()
 
     local divider = frame:CreateTexture(nil, "ARTWORK")
     setAtlas(divider, "bank-divider")
@@ -294,6 +361,11 @@ local function setPortrait(char)
     if isPlayer and texture and type(SetPortraitTexture) == "function" and pcall(SetPortraitTexture, texture, "player") then
         return
     end
+    -- Other characters cannot be rendered offline: use their class icon.
+    if char and char.class and type(frame.SetPortraitToClassIcon) == "function"
+        and pcall(frame.SetPortraitToClassIcon, frame, char.class) then
+        return
+    end
     local asset = "Interface\\AddOns\\" .. ADDON .. "\\Media\\logo"
     if type(frame.SetPortraitToAsset) == "function" then pcall(frame.SetPortraitToAsset, frame, asset) end
 end
@@ -332,6 +404,7 @@ function BankWindow:Refresh()
 
     setTitle(char and char.name and string.format(L.BANK_TITLE, char.name) or L.BANK)
     setPortrait(char)
+    updateSelector(char)
 
     local items, total = flatten(tabs)
     layout(total)
@@ -341,7 +414,8 @@ function BankWindow:Refresh()
         frame.empty:SetText("")
         frame.scanned:SetText(string.format(L.LAST_SCANNED, date(L.DATE_FORMAT, char.bank.scanned or 0)))
     else
-        frame.empty:SetText(L.NO_DATA)
+        local isPlayer = viewedKey() == (PB.DB and PB.DB.GetCharKey())
+        frame.empty:SetText(isPlayer and L.NO_DATA or L.NO_DATA_OTHER)
         frame.scanned:SetText("")
     end
 
