@@ -54,7 +54,26 @@ function DB.GetCharByKey(key)
     return type(PocketBankDB) == "table" and PocketBankDB.chars and PocketBankDB.chars[key] or nil
 end
 
-function DB.SaveCharMeta()
+-- Every saved character as { key, char }: the logged-in one first, the rest
+-- by name.
+function DB.ListChars()
+    local list = {}
+    if type(PocketBankDB) ~= "table" or type(PocketBankDB.chars) ~= "table" then return list end
+    local current = DB.GetCharKey()
+    for key, char in pairs(PocketBankDB.chars) do
+        list[#list + 1] = { key = key, char = char }
+    end
+    table.sort(list, function(a, b)
+        if a.key == current then return true end
+        if b.key == current then return false end
+        local na = a.char.fullName or a.char.name or a.key
+        local nb = b.char.fullName or b.char.name or b.key
+        return na < nb
+    end)
+    return list
+end
+
+function DB.SaveCharMeta(event)
     local char = DB.GetChar(true)
     if not char then return nil end
     local _, class = UnitClass("player")
@@ -69,7 +88,14 @@ function DB.SaveCharMeta()
     char.class = class
     char.faction = UnitFactionGroup("player")
     char.level = UnitLevel("player")
-    char.money = GetMoney()
+    local money = GetMoney()
+    if type(PocketBankDB.debug) == "table" and event then
+        PocketBankDB.debug.moneyAt = PocketBankDB.debug.moneyAt or {}
+        PocketBankDB.debug.moneyAt[event] = money
+    end
+    -- Saved money went to 0 for every character: GetMoney() is unreliable
+    -- while logging out, and the logout save overwrote the good value.
+    if event ~= "PLAYER_LOGOUT" then char.money = money end
     char.lastSeen = time()
     return char
 end
