@@ -39,6 +39,43 @@ local view
 
 local function helpers() return PB.UI.ItemButton end
 
+local function hideComparison()
+    for _, name in ipairs({ "ShoppingTooltip1", "ShoppingTooltip2" }) do
+        local tip = _G[name]
+        if tip and tip.Hide then tip:Hide() end
+    end
+end
+
+-- Gear needs no comparison: the logged-in character's own pieces use the
+-- character sheet tooltip (durability, no compare), other characters' pieces
+-- are not compared against the current gear.
+local function slotOnEnter(self)
+    if not GameTooltip or not (self.link or view.isPlayer) then return end
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    if view.isPlayer and self.slotId and type(GameTooltip.SetInventoryItem) == "function" then
+        local ok, hasItem = pcall(GameTooltip.SetInventoryItem, GameTooltip, "player", self.slotId)
+        if not ok or not hasItem then
+            if not self.link then GameTooltip:Hide() return end
+            pcall(GameTooltip.SetHyperlink, GameTooltip, self.link)
+        end
+    else
+        view.savedCompare = GameTooltip.supportsItemComparison
+        GameTooltip.supportsItemComparison = false
+        pcall(GameTooltip.SetHyperlink, GameTooltip, self.link)
+    end
+    GameTooltip:Show()
+    hideComparison()
+end
+
+local function slotOnLeave()
+    if GameTooltip then
+        GameTooltip.supportsItemComparison = view.savedCompare
+        view.savedCompare = nil
+        GameTooltip:Hide()
+    end
+    hideComparison()
+end
+
 local function slotInfo(name)
     local ok, id, texture = pcall(GetInventorySlotInfo, name)
     if ok and id then return id, texture end
@@ -73,8 +110,8 @@ local function createSlot(parent, name)
     highlight:SetTexture(SLOT_HIGHLIGHT)
     highlight:SetBlendMode("ADD")
 
-    slot:SetScript("OnEnter", h.OnEnter)
-    slot:SetScript("OnLeave", h.OnLeave)
+    slot:SetScript("OnEnter", slotOnEnter)
+    slot:SetScript("OnLeave", slotOnLeave)
     slot:SetScript("OnClick", h.OnClick)
     return slot
 end
@@ -174,6 +211,12 @@ local function create(parent)
     level:SetPoint("TOP", parent, "TOP", 0, SCENE_TOP - 10)
     view.level = level
 
+    local noModel = front:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    noModel:SetPoint("CENTER", parent, "TOPLEFT", SCENE_WIDTH / 2, SCENE_TOP - SCENE_HEIGHT / 2)
+    noModel:SetWidth(SCENE_WIDTH - 160)
+    noModel:SetText(L.NO_MODEL)
+    view.noModel = noModel
+
     local notice = CreateFrame("Frame", nil, front)
     notice:SetSize(SCENE_WIDTH - 140, 60)
     notice:SetPoint("CENTER", parent, "TOPLEFT", SCENE_WIDTH / 2, SCENE_TOP - SCENE_HEIGHT / 2)
@@ -236,6 +279,7 @@ end
 
 function EquipmentView:Show(parent, char, isPlayer)
     if not view then create(parent) end
+    view.isPlayer = isPlayer
     for _, region in ipairs(view.regions) do region:Show() end
     view.front:Show()
 
@@ -253,6 +297,7 @@ function EquipmentView:Show(parent, char, isPlayer)
     end
 
     view.notice:SetShown(equipment == nil)
+    view.noModel:SetShown(equipment ~= nil and not (view.model and view.model:IsShown()))
     view.noticeText:SetText(isPlayer and L.NO_EQUIP_DATA or L.NO_EQUIP_DATA_OTHER)
 end
 

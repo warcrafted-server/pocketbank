@@ -25,4 +25,5 @@ L.NO_BAG_DATA_OTHER = "Aún no hay datos de las bolsas de este personaje. Entra 
 L.EQUIPMENT = "Equipo"
 L.LEVEL_LINE = "{class} de nivel {level}"
 L.NO_EQUIP_DATA = "Aún sin datos del equipo. Se guarda solo al entrar al juego."
-L.NO_EQUIP_DATA_OTHER = "Aún no hay datos del equipo de este personaje. Entra con él una vez."
+L.NO_MODEL = "El modelo 3D solo está disponible para el personaje con el que juegas."
+L.NO_EQUIP_DATA_OTHER ="Aún no hay datos del equipo de este personaje. Entra con él una vez."

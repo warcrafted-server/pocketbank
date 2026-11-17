@@ -246,6 +246,17 @@ function Debug.Paperdoll()
                 if type(model[m]) == "function" then methods[#methods + 1] = m end
             end
             add("%s: %s", kind, table.concat(methods, ", "))
+            -- Full method list, to look for another way to load a race model.
+            local function allMethods(object)
+                local mt = getmetatable(object)
+                local index = mt and mt.__index
+                return type(index) == "table" and table.concat(sortedKeys(index), ", ") or "?"
+            end
+            add("%s all: %s", kind, allMethods(model))
+            if kind == "ModelScene" and model.CreateActor then
+                local okActor, actor = pcall(model.CreateActor, model)
+                add("ModelSceneActor all: %s", okActor and actor and allMethods(actor) or tostring(actor))
+            end
             model:Hide()
         else
             add("%s: cannot create (%s)", kind, tostring(model))
