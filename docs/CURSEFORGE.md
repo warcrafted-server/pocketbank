@@ -1,3 +1,5 @@
+# English
+
 **Your bank, always at hand.** PocketBank remembers what is in your bank so you can check it from anywhere, in a window that looks just like the game's own bank. A modern alternative to BankItems (bank viewer), which is no longer supported.
 
 > **Early release.** Tested in game, but young. New features arrive in small, frequent updates. Please report anything odd.
@@ -22,6 +24,8 @@
 Free for non-commercial use (WNCL-1.0). Source: https://github.com/warcrafted-server/pocketbank
 
 ---
+
+# Español
 
 **Tu banco, siempre a mano.** PocketBank recuerda lo que hay en tu banco para que lo consultes desde cualquier sitio, en una ventana igual que la del banco del juego. Alternativa moderna a BankItems (visor de banco), que ya no tiene soporte.
 

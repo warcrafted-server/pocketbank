@@ -1,4 +1,4 @@
-## 0.1.0 (2026-11-17)
+## 0.1.0 (2026-11-17) — English
 
 ### Added
 - First release. Visit the bank once and PocketBank saves its contents; from then on you can see your bank from anywhere.
@@ -7,7 +7,7 @@
 - Item tooltips on hover; Shift + click links the item in chat.
 - English and Spanish.
 
-## 0.1.0 (2026-11-17)
+## 0.1.0 (2026-11-17) — Español
 
 ### Añadido
 - Primera versión. Visita el banco una vez y PocketBank guarda su contenido; desde entonces puedes ver tu banco desde cualquier sitio.
