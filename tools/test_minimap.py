@@ -29,6 +29,7 @@ PB = {}
 CHAT = {}
 FRAMES = {}
 BANKWINDOW_TOGGLES = 0
+OPTIONS_OPENED = 0
 PocketBankDB = { schemaVersion = 1, chars = {} }
 
 MINIMAP_WIDTH, MINIMAP_HEIGHT = 150, 150
@@ -165,6 +166,7 @@ def test_button_creation():
     check(value(lua, "BUTTON.width == 31 and BUTTON.height == 31"), "button is 31x31")
     check(value(lua, 'BUTTON.strata == "MEDIUM" and BUTTON.level == 8'), "button uses the minimap strata")
     check(value(lua, 'BUTTON.clicks[1] == "LeftButtonUp"'), "button registers left clicks")
+    check(value(lua, 'BUTTON.clicks[2] == "RightButtonUp"'), "button registers right clicks")
     check(value(lua, 'BUTTON.drags[1] == "LeftButton"'), "button registers left-button dragging")
 
     check(value(lua, "#BUTTON.textures") == 4, "button has background, icon, border and highlight")
@@ -240,7 +242,9 @@ def test_tooltip():
     check(value(lua, "GameTooltip.lines[1]") == "PocketBank", "tooltip shows the title")
     check(value(lua, "GameTooltip.lines[2]") == "Left click: open or close the window",
           "tooltip explains the left click")
-    check(value(lua, "GameTooltip.lines[3]") == "Drag: move this button", "tooltip explains dragging")
+    check(value(lua, "GameTooltip.lines[3]") == "Right click: options",
+          "tooltip explains the right click")
+    check(value(lua, "GameTooltip.lines[4]") == "Drag: move this button", "tooltip explains dragging")
     check(value(lua, "GameTooltip.shown") is True, "tooltip is shown on enter")
 
     lua.execute("BUTTON.scripts.OnLeave(BUTTON)")
@@ -265,6 +269,31 @@ def test_click_and_slash():
     check(value(lua, "CHAT[#CHAT]") == "PocketBank dev", "/pb version prints the version")
 
 
+def test_right_click():
+    lua = boot()
+    lua.execute('BUTTON.scripts.OnClick(BUTTON, "RightButton")')
+    check(value(lua, "OPTIONS_OPENED") == 0, "right click opens nothing when the panel is missing")
+    check(value(lua, "#CHAT") == 1, "right click without an options panel warns the player")
+    check(value(lua, "CHAT[1]") == "PocketBank: the options panel is not available in this client.",
+          "the warning names the missing options panel")
+    check(value(lua, "BANKWINDOW_TOGGLES") == 0, "right click does not toggle the bank window")
+
+    lua.execute("PB.UI.Options = {}")
+    lua.execute('BUTTON.scripts.OnClick(BUTTON, "RightButton")')
+    check(value(lua, "#CHAT") == 2, "an options table without Open still warns")
+
+    lua.execute("PB.UI.Options = { Open = function() OPTIONS_OPENED = OPTIONS_OPENED + 1 end }")
+    lua.execute('BUTTON.scripts.OnClick(BUTTON, "RightButton")')
+    check(value(lua, "OPTIONS_OPENED") == 1, "right click calls PB.UI.Options.Open")
+    check(value(lua, "#CHAT") == 2, "right click with an options panel is silent")
+    check(value(lua, "BANKWINDOW_TOGGLES") == 0, "right click with a panel does not toggle the window")
+
+    lua.execute("PB.UI.BankWindow = { Toggle = function() BANKWINDOW_TOGGLES = BANKWINDOW_TOGGLES + 1 end }")
+    lua.execute('BUTTON.scripts.OnClick(BUTTON, "LeftButton")')
+    check(value(lua, "BANKWINDOW_TOGGLES") == 1, "left click still toggles the window")
+    check(value(lua, "OPTIONS_OPENED") == 1, "left click does not open the options")
+
+
 def main():
     check_compiles()
     test_button_creation()
@@ -274,6 +303,7 @@ def main():
     test_drag()
     test_tooltip()
     test_click_and_slash()
+    test_right_click()
     if failures:
         print(f"\n{len(failures)} check(s) failed")
         return 1

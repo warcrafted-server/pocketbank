@@ -102,6 +102,10 @@ end
 
 local function appendLines(tooltip, itemID)
     if not itemID or isShoppingTooltip(tooltip) then return end
+    local db = PocketBankDB
+    if type(db) == "table" and type(db.settings) == "table" and db.settings.tooltip == false then
+        return
+    end
     if type(tooltip.AddDoubleLine) ~= "function" then return end
     local counts = Tooltip.GetCounts(itemID)
     if #counts == 0 then return end

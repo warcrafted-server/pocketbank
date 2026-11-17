@@ -321,6 +321,33 @@ def test_spanish_labels():
     check(value(lua, "GameTooltip.lines[4].left") == "Total", "the Spanish total label")
 
 
+def test_tooltip_setting():
+    lua = boot(SETUP)
+    lua.execute("PocketBankDB.settings = { tooltip = false }")
+    lua.execute("ShowItem(GameTooltip, 100)")
+    check(value(lua, "#GameTooltip.lines") == 0, "the setting off adds no lines")
+    check(value(lua, "GameTooltip.shown") == 0, "the setting off does not show the tooltip")
+
+    lua.execute("PocketBankDB.settings.tooltip = true")
+    lua.execute("ClearTooltip(GameTooltip)\nShowItem(GameTooltip, 100)")
+    check(value(lua, "#GameTooltip.lines") == 4, "the setting is read again on every tooltip")
+    check(value(lua, "GameTooltip.shown") == 1, "the setting on shows the tooltip again")
+
+    lua.execute("PocketBankDB.settings.tooltip = nil")
+    lua.execute("ClearTooltip(GameTooltip)\nShowItem(GameTooltip, 100)")
+    check(value(lua, "#GameTooltip.lines") == 4, "a setting that was never saved keeps the counts")
+
+    lua.execute("PocketBankDB.settings = {}")
+    lua.execute("ClearTooltip(GameTooltip)\nShowItem(GameTooltip, 100)")
+    check(value(lua, "#GameTooltip.lines") == 4, "empty settings keep the counts")
+
+    processor = boot(SETUP, pre="EnableDataProcessor()")
+    processor.execute("PocketBankDB.settings = { tooltip = false }")
+    processor.execute("ShowItem(GameTooltip, 100)")
+    check(value(processor, "#GameTooltip.lines") == 0,
+          "the setting off silences the data processor path too")
+
+
 def main():
     check_compiles()
     test_counts()
@@ -328,6 +355,7 @@ def main():
     test_data_processor_lines()
     test_script_path()
     test_spanish_labels()
+    test_tooltip_setting()
     if failures:
         print(f"\n{len(failures)} check(s) failed")
         return 1

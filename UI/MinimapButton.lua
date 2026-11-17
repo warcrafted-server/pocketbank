@@ -103,6 +103,7 @@ local function showTooltip(owner)
     GameTooltip:SetOwner(owner, "ANCHOR_LEFT")
     GameTooltip:AddLine(PB.L.MINIMAP_TOOLTIP_TITLE, 1, 1, 1)
     GameTooltip:AddLine(PB.L.MINIMAP_TOOLTIP_LEFT, 1, 1, 1, true)
+    GameTooltip:AddLine(PB.L.MINIMAP_TOOLTIP_RIGHT, 1, 1, 1, true)
     GameTooltip:AddLine(PB.L.MINIMAP_TOOLTIP_DRAG, 0.7, 0.7, 0.7, true)
     GameTooltip:Show()
 end
@@ -117,7 +118,7 @@ local function createButton()
     b:SetSize(31, 31)
     b:SetFrameStrata("MEDIUM")
     b:SetFrameLevel(8)
-    b:RegisterForClicks("LeftButtonUp")
+    b:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     b:RegisterForDrag("LeftButton")
 
     local background = b:CreateTexture(nil, "BACKGROUND")
@@ -149,7 +150,16 @@ local function createButton()
             GameTooltip:Hide()
         end
     end)
-    b:SetScript("OnClick", function()
+    b:SetScript("OnClick", function(_, mouseButton)
+        if mouseButton == "RightButton" then
+            local options = PB.UI.Options
+            if options and options.Open then
+                options.Open()
+            else
+                print(PB.L.OPTIONS_UNAVAILABLE)
+            end
+            return
+        end
         PB.ToggleWindow()
     end)
     b:SetScript("OnDragStart", function(self)
