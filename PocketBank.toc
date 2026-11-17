@@ -20,6 +20,7 @@ Core/Init.lua
 Core/DB.lua
 Modules/BankScan.lua
 Modules/BagScan.lua
+Modules/EquipScan.lua
 UI/BankWindow.lua
 UI/MinimapButton.lua
 Core/Debug.lua
