@@ -23,6 +23,7 @@ read_globals = {
     "HandleModifiedItemClick",
     "ITEM_QUALITY_COLORS",
     "SetPortraitTexture",
+    "Settings",
     "UISpecialFrames",
     "C_AddOns",
     "C_Bank",

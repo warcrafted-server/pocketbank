@@ -64,6 +64,12 @@ SlashCmdList["POCKETBANK"] = function(msg)
     elseif cmd == "reset" and PB.UI and PB.UI.BankWindow then
         PB.UI.BankWindow:ResetPosition()
         print(PB.L.WINDOW_RESET)
+    elseif cmd == "options" or cmd == "opciones" then
+        if PB.UI and PB.UI.Options and PB.UI.Options.Open then
+            PB.UI.Options.Open()
+        else
+            print(PB.L.OPTIONS_UNAVAILABLE)
+        end
     else
         print("PocketBank " .. (metadata("Version") or "?"))
     end

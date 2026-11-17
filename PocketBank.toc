@@ -26,4 +26,5 @@ Modules/Search.lua
 UI/BankWindow.lua
 UI/EquipmentView.lua
 UI/MinimapButton.lua
+UI/Options.lua
 Core/Debug.lua
