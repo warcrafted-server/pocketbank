@@ -1,3 +1,13 @@
+## 0.3.0 (2026-11-18) — English
+
+### Added
+- **Your bags:** a new side tab (the bag icon on the right of the window) shows your bags in the same grid as the bank: backpack, bags and the profession bag slot. They are saved automatically when you log in and whenever they change, so you can also check the bags of your other characters from the dropdown.
+
+## 0.3.0 (2026-11-18) — Español
+
+### Añadido
+- **Tus bolsas:** una pestaña lateral nueva (el icono de la bolsa, a la derecha de la ventana) muestra tus bolsas en la misma rejilla que el banco: mochila, bolsas y la casilla de la bolsa de profesión. Se guardan solas al entrar al juego y cada vez que cambian, así que también puedes ver las bolsas de tus otros personajes desde el desplegable.
+
 ## 0.2.0 (2026-11-17) — English
 
 ### Added

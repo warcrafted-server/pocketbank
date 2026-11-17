@@ -5,6 +5,12 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+## [0.3.0] - 2026-11-18
+
+### Añadido
+
+- Bolsas: se guardan solas al entrar al juego y en cada cambio (mochila, las cuatro bolsas y la casilla de la bolsa de profesión; el llavero no). Pestaña lateral nueva que las muestra en la misma rejilla, también las de los demás personajes, con su propio aviso si aún no hay datos.
+
 ## [0.2.0] - 2026-11-17
 
 ### Añadido
