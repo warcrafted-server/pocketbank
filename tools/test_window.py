@@ -218,6 +218,44 @@ def main():
     lua.execute("PB_NS.ToggleWindow(); PB_NS.ToggleWindow()")
     check(lua.eval("PocketBankFrame.title") == "Banco de Abel", "reopening keeps the selected character")
 
+    # 0.3.0: bags view
+    check(lua.eval("#PocketBankFrame.sideTabs") == 2, "bank and bags side tabs")
+    check(lua.eval("PocketBankFrame.sideTabs[1].selected.shown") is True, "bank tab selected by default")
+    lua.execute("""
+        PocketBankDB.chars["Player-6947-0000AAAA"].bags = { scanned = 1794871143, tabs = {
+            { id = 0, size = 20, items = { [1] = { id = 6948, count = 1, link = "item:6948", icon = 134414, quality = 1 } } },
+            { id = 1, size = 6, items = {} }, { id = 2, size = 6, items = {} }, { id = 3, size = 6, items = {} },
+            { id = 4, size = 12, items = { [12] = { id = 2, count = 7, link = "item:2", icon = 222, quality = 1 } } },
+            { id = 5, size = 4, items = {} } } }
+        ROOT.radios[3].setSelected()
+        PocketBankFrame.sideTabs[2].scripts.OnClick()
+    """)
+    check(lua.eval("PocketBankFrame.title") == "Bolsas de Zelda", "bags tab shows the bags title")
+    check(lua.eval("PocketBankFrame.sideTabs[2].selected.shown") is True, "bags tab marked as selected")
+    check(lua.eval("PocketBankFrame.sideTabs[1].selected.shown") is False, "bank tab unmarked")
+    shown_slots = lua.eval("""(function()
+        local n = 0
+        for _, b in ipairs(BUTTONS) do if b.shown and b.icon then n = n + 1 end end
+        return n
+    end)()""")
+    check(shown_slots == 54, f"all bag slots in one grid (got {shown_slots})")
+    check(lua.eval("PocketBankFrame.height") == 507, "window grows to 7 rows for 54 bag slots")
+    slot1 = lua.eval("(function() local n = 0; for _, b in ipairs(BUTTONS) do if b.icon then n = n + 1; if n == 1 then return b.icon.texture end end end end)()")
+    slot50 = lua.eval("(function() local n = 0; for _, b in ipairs(BUTTONS) do if b.icon then n = n + 1; if n == 50 then return b.icon.texture end end end end)()")
+    check(slot1 == 134414 and slot50 == 222, "bag items in container order")
+    lua.execute("ROOT.radios[2].setSelected()")
+    texts = lua.eval("""(function()
+        local out = {}
+        for _, fs in ipairs(ALL_FS) do out[#out + 1] = tostring(fs.text) end
+        return table.concat(out, '|')
+    end)()""")
+    check("Aún no hay datos de las bolsas" in texts, "other character without bag data")
+    check(lua.eval("PocketBankFrame.title") == "Bolsas de Abel", "the view is kept when changing character")
+    lua.execute("PB_NS.ToggleWindow(); PB_NS.ToggleWindow()")
+    check(lua.eval("PocketBankFrame.title") == "Bolsas de Abel", "reopening keeps the bags view")
+    lua.execute("PocketBankFrame.sideTabs[1].scripts.OnClick()")
+    check(lua.eval("PocketBankFrame.title") == "Banco de Abel", "bank tab goes back to the bank")
+
     if failures:
         print(f"\n{len(failures)} check(s) failed")
         return 1
