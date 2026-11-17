@@ -33,16 +33,19 @@ local function widget(kind)
     o.CreateTexture = function(self) return widget("Texture") end
     o.CreateFontString = function(self) local f = widget("FontString"); ALL_FS[#ALL_FS + 1] = f; return f end
     o.GetFrameLevel = function() return 1 end
+    o.SetHeight = function(self, h) self.height = h end
     o.SetTitle = function(self, v) self.title = v end
     return o
 end
 
 FRAMES = {}
 ALL_FS = {}
+BUTTONS = {}
 function CreateFrame(kind, name, parent, template)
     local f = widget(kind)
     f.shown = true
     f.template = template
+    if kind == "Button" then BUTTONS[#BUTTONS + 1] = f end
     if name then _G[name] = f; FRAMES[name] = f end
     return f
 end
@@ -135,6 +138,29 @@ def main():
     end)()""")
     check("Último escaneo:" in texts, "last scan line shown")
     check("coins:16454" in texts, "money shown")
+
+    shown_slots = lua.eval("""(function()
+        local n = 0
+        for _, b in ipairs(BUTTONS) do if b.shown and b.icon then n = n + 1 end end
+        return n
+    end)()""")
+    check(shown_slots == 48, f"48 slots for the main bank (got {shown_slots})")
+    check(lua.eval("PocketBankFrame.height") == 460, "standard height with 6 rows")
+
+    lua.execute("""
+        local tabs = PB_NS.DB.GetChar(true).bank.tabs
+        tabs[2] = { id = 7, name = 'Pestaña 2', size = 6, items = { [2] = { id = 4238, count = 3, link = 'item:4238', icon = 133622, quality = 1 } } }
+        PB_NS.UI.BankWindow:Refresh()
+    """)
+    shown_slots = lua.eval("""(function()
+        local n = 0
+        for _, b in ipairs(BUTTONS) do if b.shown and b.icon then n = n + 1 end end
+        return n
+    end)()""")
+    check(shown_slots == 54, f"bank bag slots appended to the same grid (got {shown_slots})")
+    check(lua.eval("PocketBankFrame.height") == 507, "window grows one row for the bag")
+    slot50 = lua.eval("(function() local n = 0; for _, b in ipairs(BUTTONS) do if b.icon then n = n + 1; if n == 50 then return b.icon.texture end end end end)()")
+    check(slot50 == 133622, "bag item lands in slot 48 + 2")
 
     lua.execute("PB_NS.ToggleWindow()")
     check(lua.eval("PocketBankFrame:IsShown()") is False, "toggle hides the window")
