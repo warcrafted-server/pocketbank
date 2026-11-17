@@ -212,6 +212,55 @@ function Debug.Frames()
     print(string.format("|cffffd100PocketBank frames|r: %d lines saved. Type /reload to write them to disk.", #out))
 end
 
+local SLOT_NAMES = {
+    "AmmoSlot", "HeadSlot", "NeckSlot", "ShoulderSlot", "ShirtSlot", "ChestSlot", "WaistSlot", "LegsSlot",
+    "FeetSlot", "WristSlot", "HandsSlot", "Finger0Slot", "Finger1Slot", "Trinket0Slot", "Trinket1Slot",
+    "BackSlot", "MainHandSlot", "SecondaryHandSlot", "RangedSlot", "TabardSlot",
+}
+
+-- Character sheet layout and the model API needed to dress an offline
+-- character. Open the character window (C) before running it.
+function Debug.Paperdoll()
+    local out = {}
+    local function add(fmt, ...) out[#out + 1] = string.format(fmt, ...) end
+    add("CharacterFrame shown=%s", tostring(CharacterFrame and CharacterFrame:IsShown()))
+    add("UnitRace: %s", table.concat({ tostringall(UnitRace("player")) }, " | "))
+    add("UnitSex: %s", tostring(UnitSex("player")))
+    add("UnitClass: %s", table.concat({ tostringall(UnitClass("player")) }, " | "))
+    add("LOCALIZED_CLASS_NAMES_MALE: %s", type(LOCALIZED_CLASS_NAMES_MALE))
+    add("CHARACTER_LEVEL_TEMPLATE: %s", tostring(_G.CHARACTER_LEVEL_TEMPLATE))
+    add("PLAYER_LEVEL: %s", tostring(_G.PLAYER_LEVEL))
+    for _, name in ipairs(SLOT_NAMES) do
+        local ok, id, texture = pcall(GetInventorySlotInfo, name)
+        add("slot %s: ok=%s id=%s texture=%s link=%s", name, tostring(ok), tostring(id), tostring(texture),
+            tostring(ok and id and GetInventoryItemLink("player", id)))
+    end
+    for _, kind in ipairs({ "DressUpModel", "PlayerModel", "ModelScene" }) do
+        local ok, model = pcall(CreateFrame, kind, nil, UIParent)
+        if ok and model then
+            local methods = {}
+            for _, m in ipairs({ "SetUnit", "SetCustomRace", "Undress", "TryOn", "Dress", "SetSheathed",
+                "SetPortraitZoom", "SetCamDistanceScale", "SetPosition", "SetFacing", "RefreshUnit",
+                "SetModelByUnit", "SetItemTransmogInfo", "GetItemTransmogInfoList", "SetAutoDress",
+                "SetDoBlend", "SetKeepModelOnHide", "GetPlayerActor", "CreateActor" }) do
+                if type(model[m]) == "function" then methods[#methods + 1] = m end
+            end
+            add("%s: %s", kind, table.concat(methods, ", "))
+            model:Hide()
+        else
+            add("%s: cannot create (%s)", kind, tostring(model))
+        end
+    end
+    for _, name in ipairs({ "PaperDollFrame", "CharacterModelScene", "CharacterModelFrame", "PaperDollItemsFrame",
+        "CharacterHeadSlot", "CharacterMainHandSlot", "CharacterRangedSlot", "CharacterLevelText" }) do
+        add("frame %s: %s", name, _G[name] and "exists" or "missing")
+    end
+    if CharacterFrame then walk(CharacterFrame, 4, out, "") end
+    local store = db()
+    store.paperdoll = { time = date("%Y-%m-%d %H:%M:%S"), lines = out }
+    print(string.format("|cffffd100PocketBank paperdoll|r: %d lines saved. Type /reload to write them to disk.", #out))
+end
+
 local frame = CreateFrame("Frame")
 for _, ev in ipairs(EVENTS) do pcall(frame.RegisterEvent, frame, ev) end
 frame:SetScript("OnEvent", function(_, event, ...)
