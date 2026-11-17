@@ -274,14 +274,15 @@ end
 
 -- Experiment: can a stock race model loaded by path wear saved gear? This is
 -- the only way to draw an offline character (no SetCustomRace here).
+-- Paths do not resolve in this client ("FileData ID 0"): try file ids.
 local MODEL_PATHS = {
-    hd = "character\\human\\male\\humanmale_hd.m2",
-    classic = "character\\human\\male\\humanmale.m2",
+    hd = 1011653, -- character/human/male/humanmale_hd.m2 (unverified)
+    classic = 119940, -- character/human/male/humanmale.m2 (unverified)
 }
 local testFrame
 
 function Debug.ModelTest(arg)
-    local path = MODEL_PATHS[arg ~= "" and arg or "hd"] or arg
+    local path = MODEL_PATHS[arg ~= "" and arg or "hd"] or tonumber(arg) or arg
     if not testFrame then
         testFrame = CreateFrame("Frame", nil, UIParent, "BasicFrameTemplateWithInset")
         testFrame:SetSize(260, 360)
@@ -292,7 +293,7 @@ function Debug.ModelTest(arg)
         testFrame.model:SetPoint("BOTTOMRIGHT", -8, 8)
     end
     local model = testFrame.model
-    local out = { "path=" .. path }
+    local out = { "path=" .. tostring(path) }
     local function try(label, fn, ...)
         local ok, a, b = pcall(fn, model, ...)
         out[#out + 1] = string.format("%s: ok=%s %s %s", label, tostring(ok), tostring(a), tostring(b))
@@ -309,7 +310,7 @@ function Debug.ModelTest(arg)
     testFrame:Show()
     local store = db()
     store.modeltest = { time = date("%Y-%m-%d %H:%M:%S"), lines = out }
-    print(string.format("|cffffd100PocketBank modeltest|r: %s. Look at the model, then /reload.", path))
+    print(string.format("|cffffd100PocketBank modeltest|r: %s. Look at the model, then /reload.", tostring(path)))
 end
 
 local frame = CreateFrame("Frame")
