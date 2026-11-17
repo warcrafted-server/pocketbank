@@ -18,7 +18,9 @@ local SLOT_GAP_X, SLOT_GAP_Y = 13, 10
 local ROW_STEP = SLOT_SIZE + SLOT_GAP_Y
 local FOOTER_HEIGHT = 30
 local SIDE_TAB_SIZE = 55
+local SIDE_TAB_STEP = SIDE_TAB_SIZE + 5
 local CHEST_ICON = 8197077 -- icon of the client's own bank side tab
+local BAG_ICON = "Interface\\Icons\\INV_Misc_Bag_08"
 local QUALITY_BORDER = 130839
 local SLOT_HIGHLIGHT = 130718
 local ROCK_BACKGROUND = 374155
@@ -27,6 +29,15 @@ local L = PB.L
 local frame
 local slots = {}
 local charKey
+
+-- Each view is one saved section of the character shown in the same grid.
+local VIEWS = {
+    { key = "bank", icon = CHEST_ICON, label = "BANK", title = "BANK_TITLE",
+      empty = "NO_DATA", emptyOther = "NO_DATA_OTHER", slotAtlas = "bags-item-bankslot64" },
+    { key = "bags", icon = BAG_ICON, label = "BAGS", title = "BAGS_TITLE",
+      empty = "NO_BAG_DATA", emptyOther = "NO_BAG_DATA_OTHER", slotAtlas = "bags-item-slot64" },
+}
+local view = VIEWS[1]
 
 local function setAtlas(texture, atlas, useSize)
     if texture and type(texture.SetAtlas) == "function" then
@@ -91,7 +102,7 @@ local function createSlot(parent, index)
 
     local bg = slot:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
-    setAtlas(bg, "bags-item-bankslot64")
+    slot.bg = bg
 
     local icon = slot:CreateTexture(nil, "BORDER")
     icon:SetAllPoints()
@@ -149,12 +160,13 @@ local function fillSlot(slot, item)
     end
 end
 
--- Side tab --------------------------------------------------------------
+-- Side tabs -------------------------------------------------------------
 
-local function createSideTab()
+local function createSideTab(index, def)
     local tab = CreateFrame("Button", nil, frame)
     tab:SetSize(SIDE_TAB_SIZE, SIDE_TAB_SIZE)
-    tab:SetPoint("TOPLEFT", frame, "TOPRIGHT", 0, -60)
+    tab:SetPoint("TOPLEFT", frame, "TOPRIGHT", 0, -60 - (index - 1) * SIDE_TAB_STEP)
+    tab.view = def
 
     local bg = tab:CreateTexture(nil, "BACKGROUND")
     bg:SetPoint("CENTER")
@@ -163,11 +175,12 @@ local function createSideTab()
     local icon = tab:CreateTexture(nil, "ARTWORK")
     icon:SetSize(SIDE_TAB_SIZE - 20, SIDE_TAB_SIZE - 20)
     icon:SetPoint("CENTER", -2, 0)
-    icon:SetTexture(CHEST_ICON)
+    icon:SetTexture(def.icon)
 
     local selected = tab:CreateTexture(nil, "OVERLAY")
     selected:SetPoint("CENTER")
     setAtlas(selected, "common-sidetab-selected", true)
+    tab.selected = selected
 
     local hover = tab:CreateTexture(nil, "HIGHLIGHT")
     hover:SetPoint("CENTER")
@@ -176,10 +189,14 @@ local function createSideTab()
     tab:SetScript("OnEnter", function(self)
         if not GameTooltip then return end
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText(L.BANK, 1, 1, 1)
+        GameTooltip:SetText(L[def.label], 1, 1, 1)
         GameTooltip:Show()
     end)
     tab:SetScript("OnLeave", slotOnLeave)
+    tab:SetScript("OnClick", function()
+        view = def
+        BankWindow:Refresh()
+    end)
     return tab
 end
 
@@ -301,7 +318,8 @@ local function create()
 
     addShadows(frame)
 
-    createSideTab()
+    frame.sideTabs = {}
+    for index, def in ipairs(VIEWS) do frame.sideTabs[index] = createSideTab(index, def) end
     frame.selector = createSelector()
 
     local divider = frame:CreateTexture(nil, "ARTWORK")
@@ -403,17 +421,22 @@ local function layout(total)
     -- Before the first visit there is nothing saved: show the empty 8x6 grid.
     local shown = total > 0 and total or COLUMNS * ROWS
     for i = #slots + 1, shown do slots[i] = createSlot(frame, i) end
-    for i, slot in ipairs(slots) do slot:SetShown(i <= shown) end
+    for i, slot in ipairs(slots) do
+        slot:SetShown(i <= shown)
+        setAtlas(slot.bg, view.slotAtlas)
+    end
 end
 
 function BankWindow:Refresh()
     if not frame then return end
     local char = currentChar()
-    local tabs = char and char.bank and char.bank.tabs or {}
+    local section = char and char[view.key]
+    local tabs = section and section.tabs or {}
 
-    setTitle(char and char.name and string.format(L.BANK_TITLE, char.name) or L.BANK)
+    setTitle(char and char.name and string.format(L[view.title], char.name) or L[view.label])
     setPortrait(char)
     updateSelector(char)
+    for _, tab in ipairs(frame.sideTabs) do tab.selected:SetShown(tab.view == view) end
 
     local items, total = flatten(tabs)
     layout(total)
@@ -422,10 +445,10 @@ function BankWindow:Refresh()
     frame.notice:SetShown(total == 0)
     if total > 0 then
         frame.empty:SetText("")
-        frame.scanned:SetText(string.format(L.LAST_SCANNED, date(L.DATE_FORMAT, char.bank.scanned or 0)))
+        frame.scanned:SetText(string.format(L.LAST_SCANNED, date(L.DATE_FORMAT, section.scanned or 0)))
     else
         local isPlayer = viewedKey() == (PB.DB and PB.DB.GetCharKey())
-        frame.empty:SetText(isPlayer and L.NO_DATA or L.NO_DATA_OTHER)
+        frame.empty:SetText(isPlayer and L[view.empty] or L[view.emptyOther])
         frame.scanned:SetText("")
     end
 
@@ -462,6 +485,8 @@ function BankWindow:Toggle()
     end
 end
 
-PB.RegisterCallback("BANK_SCANNED", function()
+local function refreshIfShown()
     if frame and frame:IsShown() then BankWindow:Refresh() end
-end)
+end
+PB.RegisterCallback("BANK_SCANNED", refreshIfShown)
+PB.RegisterCallback("BAGS_SCANNED", refreshIfShown)
