@@ -275,6 +275,8 @@ local function dressModel(char, items, isPlayer)
     for _, item in pairs(items) do
         if item.link then pcall(model.TryOn, model, item.link) end
     end
+    -- The character sheet shows weapons sheathed.
+    pcall(model.SetSheathed, model, true)
 end
 
 function EquipmentView:Show(parent, char, isPlayer)
