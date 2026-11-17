@@ -4,15 +4,31 @@
 
 Addon for **WoW Forever** (Interface 16001) that shows the contents of your bank, bags and equipment, including those of the other characters on your account, without visiting the bank. A modern alternative to BankItems, which is no longer supported.
 
-> **Status:** in development, not yet published on CurseForge. This section will be completed with the first release.
+> **Status:** version 0.1.0, the first one. For now it shows the bank of the character you are playing; other characters, bags, equipment and the rest arrive in the next versions.
+
+![PocketBank window](docs/img/capturas/PocketBank-0.1.0-banco.png)
 
 ## Requirements
 
 - WoW Forever (`_forever_` client, Interface 16001).
 
-## Installation and usage
+## Installation
 
-Pending the first published release. It will be installed from the CurseForge app or by copying the `PocketBank` folder into `World of Warcraft\_forever_\Interface\AddOns\`.
+From the CurseForge app (select your Forever installation) or at https://www.curseforge.com/wow/addons/pocketbank. Manually: copy the `PocketBank` folder into `World of Warcraft\_forever_\Interface\AddOns\` and restart the game.
+
+## Usage
+
+1. Visit the bank once: PocketBank saves its contents and says so in the chat ("Bank saved (N items)"). It saves again every time you open it.
+2. From anywhere, click the minimap button or type `/pb` to open or close the bank window. `Esc` also closes it.
+3. Hover an item to see its tooltip; Shift + click links it in chat.
+
+The minimap button can be dragged around the minimap and remembers its position.
+
+| Command | What it does |
+|---|---|
+| `/pb` or `/pocketbank` | Opens or closes the bank window |
+| `/pb version` | Shows the version |
+| `/pb debug`, `/pb frames` | Diagnostics for support (saved on `/reload`) |
 
 ## Credits and license
 

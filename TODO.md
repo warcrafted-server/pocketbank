@@ -4,12 +4,12 @@ La publicación es escalonada: una novedad probada en el juego por entrega. Cola
 
 ## Alta prioridad
 
-- Crear el proyecto en CurseForge (datos en `docs/CURSEFORGE.md`), apuntar su ID en el `.toc` y crear el secreto `CF_API_KEY` en GitHub.
-- Entrega 1 (0.1.0): escaneo del banco, guardado por personaje y ventana con el botón del minimapa.
+- 0.2.0: selector de personaje (banco de los otros personajes de la cuenta), con el nombre completo de dos partes.
 
 ## Media prioridad
 
-- Capturas del juego para CurseForge y los README, con el nombre `PocketBank-X.Y.Z-tema.png` en `docs/img/capturas/`.
+- Capturas de cada novedad para CurseForge y los README, con el nombre `PocketBank-X.Y.Z-tema.png` en `docs/img/capturas/`.
+- Fila de «Casillas de bolsa» con los iconos de las bolsas del banco (sin el botón «Comprar»), si se pide.
 - Comprobar `luacheck` en el CI.
 
 ## Descartado
