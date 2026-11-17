@@ -77,6 +77,7 @@ end
 PB.RegisterCallback("BANK_SCANNED", invalidate)
 PB.RegisterCallback("BAGS_SCANNED", invalidate)
 PB.RegisterCallback("EQUIPMENT_SCANNED", invalidate)
+PB.RegisterCallback("CHAR_DELETED", invalidate)
 
 local function classColoredName(char, key)
     local name = char.fullName or char.name or key

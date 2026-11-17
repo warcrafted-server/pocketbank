@@ -643,3 +643,12 @@ end
 PB.RegisterCallback("BANK_SCANNED", refreshIfShown)
 PB.RegisterCallback("BAGS_SCANNED", refreshIfShown)
 PB.RegisterCallback("EQUIPMENT_SCANNED", refreshIfShown)
+PB.RegisterCallback("CHAR_DELETED", function(key)
+    -- The deleted character cannot stay on screen, so the window returns to
+    -- the logged-in one, as selecting a character does.
+    if charKey ~= nil and key == charKey then
+        charKey = nil
+        clearSearch()
+    end
+    refreshIfShown()
+end)

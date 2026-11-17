@@ -348,6 +348,18 @@ def test_tooltip_setting():
           "the setting off silences the data processor path too")
 
 
+def test_deleted_character():
+    lua = boot(SETUP)
+    check(keys_of(lua, 100) == "Player-1-0001,Player-4-0004,Player-2-0002", "three holders before the delete")
+    lua.execute("PB.DB.DeleteChar('Player-4-0004')")
+    check(keys_of(lua, 100) == "Player-1-0001,Player-2-0002", "CHAR_DELETED drops the character from the counts")
+    check(value(lua, "PB.Tooltip.GetCounts(100)[1].total") == 26, "the other characters keep their counts")
+    check(value(lua, "#PB.Tooltip.GetCounts(900)") == 1, "an item of the deleted character still counts its other holder")
+    check(value(lua, "PB.DB.DeleteChar('Player-1-0001')") is False, "the logged-in character cannot be deleted")
+    check(value(lua, "PB.DB.DeleteChar('Player-9-9999')") is False, "an unknown key returns false")
+    check(keys_of(lua, 100) == "Player-1-0001,Player-2-0002", "a refused delete changes no counts")
+
+
 def main():
     check_compiles()
     test_counts()
@@ -356,6 +368,7 @@ def main():
     test_script_path()
     test_spanish_labels()
     test_tooltip_setting()
+    test_deleted_character()
     if failures:
         print(f"\n{len(failures)} check(s) failed")
         return 1

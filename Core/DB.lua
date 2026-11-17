@@ -73,6 +73,16 @@ function DB.ListChars()
     return list
 end
 
+-- The logged-in character can never be deleted: a scan would save it again.
+function DB.DeleteChar(key)
+    if type(key) ~= "string" or type(PocketBankDB) ~= "table" then return false end
+    local chars = PocketBankDB.chars
+    if type(chars) ~= "table" or not chars[key] or key == DB.GetCharKey() then return false end
+    chars[key] = nil
+    PB.FireCallback("CHAR_DELETED", key)
+    return true
+end
+
 function DB.SaveCharMeta(event)
     local char = DB.GetChar(true)
     if not char then return nil end

@@ -424,6 +424,40 @@ def main():
     lua.execute("PocketBankFrame.sideTabs[1].scripts.OnClick()")
     check(lua.eval("PocketBankFrameSearchBox.shown") is True, "the search box is shown again in the bank")
 
+    # deleting a saved character
+    lua.execute("ROOT.radios[3].setSelected()")
+    check(lua.eval("PocketBankFrame.title") == "Banco de Zelda", "the character to delete is shown")
+    lua.execute("""
+        local box = PocketBankFrameSearchBox
+        box:SetText('dust')
+        box.scripts.OnTextChanged(box)
+    """)
+    check(lua.eval("PocketBankFrame.title") == "Búsqueda en la cuenta", "search mode before the delete")
+    check(lua.eval("PB_NS.DB.DeleteChar('Player-6947-0000AAAA')") is True, "deleting another character succeeds")
+    check(lua.eval("PocketBankDB.chars['Player-6947-0000AAAA']") is None,
+          "the deleted character leaves the saved data")
+    check(lua.eval("PocketBankFrameSearchBox.text or ''") == "", "the delete clears the search box")
+    check(lua.eval("PocketBankFrame.title") == "Banco de Charman",
+          "the window falls back to the logged-in character")
+    lua.execute("ROOT.radios = {}; DROPDOWN.menuGen(DROPDOWN, ROOT)")
+    check(lua.eval("#ROOT.radios") == 2, "the deleted character leaves the dropdown")
+    check(lua.eval("ROOT.radios[1].isSelected()") is True, "the logged-in character is selected again")
+
+    check(lua.eval("PB_NS.DB.DeleteChar('Player-6947-0000BBBB')") is True, "another character can be deleted")
+    check(lua.eval("PocketBankFrame.title") == "Banco de Charman",
+          "deleting a character that is not shown keeps the window as it was")
+    lua.execute("ROOT.radios = {}; DROPDOWN.menuGen(DROPDOWN, ROOT)")
+    check(lua.eval("#ROOT.radios") == 1, "the second deleted character leaves the dropdown")
+
+    check(lua.eval("PB_NS.DB.DeleteChar('Player-6947-011E3126')") is False,
+          "the logged-in character cannot be deleted")
+    check(lua.eval("PocketBankDB.chars['Player-6947-011E3126'] ~= nil") is True, "its saved data is kept")
+    check(lua.eval("PB_NS.DB.DeleteChar('Player-6947-0000ZZZZ')") is False, "an unknown character is refused")
+    check(lua.eval("PB_NS.DB.DeleteChar(nil)") is False, "a missing key is refused")
+    remaining = lua.eval("(function() local n = 0 for _ in pairs(PocketBankDB.chars) do n = n + 1 end return n end)()")
+    check(remaining == 1, f"only the logged-in character remains (got {remaining})")
+    check(lua.eval("PocketBankFrame.title") == "Banco de Charman", "a refused delete leaves the window alone")
+
     if failures:
         print(f"\n{len(failures)} check(s) failed")
         return 1
