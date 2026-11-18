@@ -21,6 +21,7 @@ local SIDE_TAB_SIZE = 55
 local SIDE_TAB_STEP = SIDE_TAB_SIZE + 5
 local CHEST_ICON = 8197077 -- icon of the client's own bank side tab
 local BAG_ICON = "Interface\\Icons\\INV_Misc_Bag_08"
+local EQUIPMENT_ICON = "Interface\\Icons\\INV_Helmet_03"
 local QUALITY_BORDER = 130839
 local SLOT_HIGHLIGHT = 130718
 local ROCK_BACKGROUND = 374155
@@ -36,6 +37,7 @@ local VIEWS = {
       empty = "NO_DATA", emptyOther = "NO_DATA_OTHER", slotAtlas = "bags-item-bankslot64" },
     { key = "bags", icon = BAG_ICON, label = "BAGS", title = "BAGS_TITLE",
       empty = "NO_BAG_DATA", emptyOther = "NO_BAG_DATA_OTHER", slotAtlas = "bags-item-slot64" },
+    { key = "equipment", icon = EQUIPMENT_ICON, label = "EQUIPMENT", paperdoll = true },
 }
 local view = VIEWS[1]
 
@@ -94,6 +96,15 @@ local function slotOnClick(self)
         pcall(HandleModifiedItemClick, self.link)
     end
 end
+
+-- Shared with the equipment view so every item button behaves the same.
+PB.UI.ItemButton = {
+    OnEnter = slotOnEnter,
+    OnLeave = slotOnLeave,
+    OnClick = slotOnClick,
+    QualityColor = qualityColor,
+    SetAtlas = setAtlas,
+}
 
 local function createSlot(parent, index)
     local slot = CreateFrame("Button", nil, parent)
@@ -283,6 +294,7 @@ local function addShadows(parent)
         setAtlas(t, c[1], true)
         t:SetPoint(c[2])
     end
+    return area
 end
 
 local function create()
@@ -316,7 +328,7 @@ local function create()
     streaks:SetPoint("TOPRIGHT", -4, -21)
     streaks:SetHeight(43)
 
-    addShadows(frame)
+    local shadows = addShadows(frame)
 
     frame.sideTabs = {}
     for index, def in ipairs(VIEWS) do frame.sideTabs[index] = createSideTab(index, def) end
@@ -368,6 +380,9 @@ local function create()
         money:SetPoint("RIGHT", footer, "RIGHT", -8, 0)
         frame.money = money
     end
+
+    -- Everything the bank and bags grid owns, hidden in the equipment view.
+    frame.gridParts = { rock, background, streaks, shadows, divider, scanned, footer }
 
     if type(UISpecialFrames) == "table" then UISpecialFrames[#UISpecialFrames + 1] = FRAME_NAME end
     return frame
@@ -430,13 +445,28 @@ end
 function BankWindow:Refresh()
     if not frame then return end
     local char = currentChar()
-    local section = char and char[view.key]
-    local tabs = section and section.tabs or {}
-
-    setTitle(char and char.name and string.format(L[view.title], char.name) or L[view.label])
+    local isPlayer = viewedKey() == (PB.DB and PB.DB.GetCharKey())
     setPortrait(char)
     updateSelector(char)
     for _, tab in ipairs(frame.sideTabs) do tab.selected:SetShown(tab.view == view) end
+
+    local equipmentView = PB.UI.EquipmentView
+    local paperdoll = view.paperdoll and equipmentView ~= nil
+    for _, part in ipairs(frame.gridParts) do part:SetShown(not paperdoll) end
+    if paperdoll then
+        for _, slot in ipairs(slots) do slot:Hide() end
+        frame.notice:Hide()
+        frame:SetSize(equipmentView.WIDTH, equipmentView.HEIGHT)
+        setTitle(char and (char.fullName or char.name) or L[view.label])
+        equipmentView:Show(frame, char, isPlayer)
+        return
+    end
+    if equipmentView then equipmentView:Hide() end
+    frame:SetWidth(WIDTH)
+
+    local section = char and char[view.key]
+    local tabs = section and section.tabs or {}
+    setTitle(char and char.name and string.format(L[view.title], char.name) or L[view.label])
 
     local items, total = flatten(tabs)
     layout(total)
@@ -447,7 +477,6 @@ function BankWindow:Refresh()
         frame.empty:SetText("")
         frame.scanned:SetText(string.format(L.LAST_SCANNED, date(L.DATE_FORMAT, section.scanned or 0)))
     else
-        local isPlayer = viewedKey() == (PB.DB and PB.DB.GetCharKey())
         frame.empty:SetText(isPlayer and L[view.empty] or L[view.emptyOther])
         frame.scanned:SetText("")
     end
@@ -490,3 +519,4 @@ local function refreshIfShown()
 end
 PB.RegisterCallback("BANK_SCANNED", refreshIfShown)
 PB.RegisterCallback("BAGS_SCANNED", refreshIfShown)
+PB.RegisterCallback("EQUIPMENT_SCANNED", refreshIfShown)

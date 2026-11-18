@@ -57,6 +57,8 @@ SlashCmdList["POCKETBANK"] = function(msg)
         PB.Debug.Run()
     elseif cmd == "frames" and PB.Debug then
         PB.Debug.Frames()
+    elseif cmd == "paperdoll" and PB.Debug then
+        PB.Debug.Paperdoll()
     elseif cmd == "" then
         PB.ToggleWindow()
     else
