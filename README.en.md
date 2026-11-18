@@ -4,11 +4,13 @@
 
 Addon for **WoW Forever** (Interface 16001) that shows the contents of your bank, bags and equipment, including those of the other characters on your account, without visiting the bank. A modern alternative to BankItems, which is no longer supported.
 
-> **Status:** version 0.3.0. It shows the bank and bags of every character; equipment and the rest arrive in the next versions.
+> **Status:** version 0.4.0. It shows the bank, bags and equipment of every character; the rest arrives in the next versions.
 
 ![PocketBank window](docs/img/capturas/PocketBank-0.2.0-personajes.png)
 
 ![Bags in PocketBank](docs/img/capturas/PocketBank-0.3.0-bolsas.png)
+
+![Equipment in PocketBank](docs/img/capturas/PocketBank-0.4.0-equipo.png)
 
 ## Requirements
 
@@ -23,8 +25,9 @@ From the CurseForge app (select your Forever installation) or at https://www.cur
 1. Visit the bank once: PocketBank saves its contents and says so in the chat ("Bank saved (N items)"). It saves again every time you open it.
 2. From anywhere, click the minimap button or type `/pb` to open or close the bank window. `Esc` also closes it.
 3. To see your bags, click the bag tab on the right of the window. They are saved automatically when you log in and whenever they change (backpack, bags and profession bag; not the keyring).
-4. To see another character's bank or bags, pick it in the dropdown at the top of the window. Each character must have visited the bank (for the bank) or logged in (for the bags) once.
-5. Hover an item to see its tooltip; Shift + click links it in chat.
+4. To see your equipment, click the helmet tab: it shows a copy of the character sheet. It is saved automatically when you log in and whenever you change gear. The 3D model is shown for the logged-in character and for others of the same race and sex; for other races the game does not allow loading it.
+5. To see another character's bank, bags or equipment, pick it in the dropdown at the top of the window. Each character must have visited the bank (for the bank) or logged in (for the bags and equipment) once.
+6. Hover an item to see its tooltip; Shift + click links it in chat.
 
 The minimap button can be dragged around the minimap and remembers its position.
 
@@ -32,7 +35,7 @@ The minimap button can be dragged around the minimap and remembers its position.
 |---|---|
 | `/pb` or `/pocketbank` | Opens or closes the bank window |
 | `/pb version` | Shows the version |
-| `/pb debug`, `/pb frames` | Diagnostics for support (saved on `/reload`) |
+| `/pb debug`, `/pb frames`, `/pb paperdoll` | Diagnostics for support (saved on `/reload`) |
 
 ## Credits and license
 

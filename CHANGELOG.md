@@ -5,6 +5,14 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+## [0.4.0] - 2026-11-18
+
+### Añadido
+
+- Equipo: se guarda solo al entrar al juego y al cambiarlo. Tercera pestaña lateral con una copia de la hoja de personaje (casillas, fondo de su raza, nivel y clase), también para los demás personajes. Modelo 3D: el personaje conectado tal cual; otro de la misma raza y sexo, con el cuerpo del conectado y su equipo guardado; de otra raza, sin modelo y con un aviso, porque el juego no permite cargarlo. Las armas se ven envainadas, como en la hoja del juego.
+- Tooltip de cada pieza de equipo sin la comparación con lo que llevas puesto.
+- Diagnóstico `/pb paperdoll`.
+
 ## [0.3.0] - 2026-11-18
 
 ### Añadido
