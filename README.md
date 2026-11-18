@@ -4,11 +4,13 @@
 
 Addon para **WoW Forever** (Interface 16001) que muestra el contenido de tu banco, bolsas y equipo, también el de los demás personajes de tu cuenta, sin tener que visitar el banco. Alternativa moderna a BankItems, que ya no tiene soporte.
 
-> **Estado:** versión 0.3.0. Muestra el banco y las bolsas de cada personaje; el equipo y el resto llegan en próximas versiones.
+> **Estado:** versión 0.4.0. Muestra el banco, las bolsas y el equipo de cada personaje; el resto llega en próximas versiones.
 
 ![Ventana de PocketBank](docs/img/capturas/PocketBank-0.2.0-personajes.png)
 
 ![Bolsas en PocketBank](docs/img/capturas/PocketBank-0.3.0-bolsas.png)
+
+![Equipo en PocketBank](docs/img/capturas/PocketBank-0.4.0-equipo.png)
 
 ## Requisitos
 
@@ -23,8 +25,9 @@ Desde la aplicación de CurseForge (elige tu instalación de Forever) o en https
 1. Visita el banco una vez: PocketBank guarda su contenido y lo dice en el chat («Banco guardado (N objetos)»). Se vuelve a guardar cada vez que lo abres.
 2. Desde cualquier sitio, pulsa el botón del minimapa o escribe `/pb` para abrir o cerrar la ventana del banco. `Esc` también la cierra.
 3. Para ver tus bolsas, pulsa la pestaña de la bolsa, a la derecha de la ventana. Se guardan solas al entrar al juego y cada vez que cambian (mochila, bolsas y bolsa de profesión; el llavero no).
-4. Para ver el banco o las bolsas de otro personaje, elígelo en el desplegable de arriba de la ventana. Cada personaje tiene que haber visitado el banco (para el banco) o haber entrado al juego (para las bolsas) una vez.
-5. Pasa el ratón por un objeto para ver su tooltip; Mayús + clic lo enlaza en el chat.
+4. Para ver tu equipo, pulsa la pestaña del casco: muestra una copia de la hoja de personaje. Se guarda solo al entrar al juego y cada vez que cambias de equipo. El modelo 3D sale en el personaje conectado y en los de su misma raza y sexo; con otras razas el juego no permite cargarlo.
+5. Para ver el banco, las bolsas o el equipo de otro personaje, elígelo en el desplegable de arriba de la ventana. Cada personaje tiene que haber visitado el banco (para el banco) o haber entrado al juego (para las bolsas y el equipo) una vez.
+6. Pasa el ratón por un objeto para ver su tooltip; Mayús + clic lo enlaza en el chat.
 
 El botón del minimapa se puede arrastrar alrededor del minimapa y recuerda su posición.
 
@@ -32,7 +35,7 @@ El botón del minimapa se puede arrastrar alrededor del minimapa y recuerda su p
 |---|---|
 | `/pb` o `/pocketbank` | Abre o cierra la ventana del banco |
 | `/pb version` | Muestra la versión |
-| `/pb debug`, `/pb frames` | Diagnóstico para soporte (se guarda al hacer `/reload`) |
+| `/pb debug`, `/pb frames`, `/pb paperdoll` | Diagnóstico para soporte (se guarda al hacer `/reload`) |
 
 ## Desarrollo
 

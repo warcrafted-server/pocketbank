@@ -1,3 +1,17 @@
+## 0.4.0 (2026-11-18) — English
+
+### Added
+- **Your gear:** a third side tab (the helmet icon) shows a copy of the character sheet with everything you have equipped, your race background, level and class. It is saved automatically when you log in and whenever you change gear, so you can also check what your other characters wear from the dropdown.
+- **3D model:** your current character as usual. Another character of the same race and sex is shown with your current body wearing their saved gear. For other races the game does not allow loading the model, so a short notice explains it.
+- Hover a piece of gear to see its tooltip, without the comparison with what you are wearing.
+
+## 0.4.0 (2026-11-18) — Español
+
+### Añadido
+- **Tu equipo:** una tercera pestaña lateral (el icono del casco) muestra una copia de la hoja de personaje con todo lo que llevas equipado, el fondo de tu raza, el nivel y la clase. Se guarda solo al entrar al juego y cada vez que cambias de equipo, así que también puedes ver qué llevan tus otros personajes desde el desplegable.
+- **Modelo 3D:** tu personaje actual, como siempre. Otro personaje de la misma raza y sexo se ve con el cuerpo del actual y su equipo guardado. Con otras razas el juego no permite cargar el modelo, y un aviso lo explica.
+- Pasa el ratón por una pieza de equipo para ver su tooltip, sin la comparación con lo que llevas puesto.
+
 ## 0.3.0 (2026-11-18) — English
 
 ### Added
