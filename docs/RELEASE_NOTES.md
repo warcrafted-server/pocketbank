@@ -1,3 +1,13 @@
+## 0.5.0 (2026-11-20) — English
+
+### Added
+- **Who has it?** Hover any item, anywhere in the game (bags, chat links, vendors, auction house…), and its tooltip lists how many each of your characters holds, in class colors, split between bank, bags and gear. When several characters have it, a total line sums them up.
+
+## 0.5.0 (2026-11-20) — Español
+
+### Añadido
+- **¿Quién lo tiene?** Pasa el ratón por cualquier objeto, en cualquier parte del juego (bolsas, enlaces del chat, vendedores, casa de subastas…), y su tooltip indica cuántos tiene cada uno de tus personajes, en el color de su clase y repartidos entre banco, bolsas y equipo. Si lo tienen varios, una línea de total los suma.
+
 ## 0.4.0 (2026-11-18) — English
 
 ### Added
