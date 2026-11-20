@@ -61,6 +61,8 @@ local function collect()
     probe("GetNormalizedRealmName", _G.GetNormalizedRealmName)
     probe("GetPlayerInfoByGUID", _G.GetPlayerInfoByGUID, _G.UnitGUID and _G.UnitGUID("player"))
     if C_PlayerInfo then add("C_PlayerInfo: %s", table.concat(sortedKeys(C_PlayerInfo), ", ")) end
+    add("TooltipDataProcessor: %s", type(TooltipDataProcessor))
+    add("Enum.TooltipDataType: %s", type(Enum and Enum.TooltipDataType))
 
     for _, name in ipairs({ "BANK_CONTAINER", "REAGENTBANK_CONTAINER", "KEYRING_CONTAINER",
         "NUM_BAG_SLOTS", "NUM_BANKBAGSLOTS", "NUM_BANKGENERIC_SLOTS",
