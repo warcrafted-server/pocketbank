@@ -5,6 +5,12 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+## [0.5.0] - 2026-11-20
+
+### Añadido
+
+- Tooltip de los objetos con cuántos tiene cada personaje de la cuenta (nombre en el color de su clase y el reparto entre banco, bolsas y equipo), y el total cuando lo tienen varios. Funciona en cualquier tooltip de objeto del juego (bolsas, chat, vendedores, subasta…), no solo en la ventana de PocketBank.
+
 ## [0.4.0] - 2026-11-18
 
 ### Añadido
