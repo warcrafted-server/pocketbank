@@ -79,6 +79,8 @@ PRINTED = {}
 print = function(...) PRINTED[#PRINTED + 1] = table.concat({ ... }, " ") end
 time = function() return 1794871143 end
 date = os.date
+strtrim = function(s) return (s:gsub("^%s+", ""):gsub("%s+$", "")) end
+strlower = string.lower
 """
 
 failures = []
@@ -300,6 +302,24 @@ def main():
         return true
     end)()""")
     check(gear_hidden and lua.eval("PocketBankFrame.title") == "Banco de Abel", "back to the bank hides the gear slots")
+
+    # 0.6.0: movable window that remembers its position
+    lua.execute("""
+        local f = PocketBankFrame
+        f.SetPoint = function(self, ...) self.point = { ... } end
+        f.GetLeft = function() return 300 end
+        f.GetTop = function() return 700 end
+        f.scripts.OnDragStart(f)
+        f.scripts.OnDragStop(f)
+    """)
+    check(lua.eval("PocketBankDB.settings.window.left") == 300 and lua.eval("PocketBankDB.settings.window.top") == 700,
+          "dragging saves the top-left corner")
+    check(lua.eval("PocketBankFrame.point[1]") == "TOPLEFT" and lua.eval("PocketBankFrame.point[3]") == "BOTTOMLEFT"
+          and lua.eval("PocketBankFrame.point[5]") == 700, "window anchored at the saved corner")
+    lua.execute("SlashCmdList.POCKETBANK('reset')")
+    check(lua.eval("PocketBankDB.settings.window") is None, "/pb reset forgets the position")
+    check(lua.eval("PocketBankFrame.point[3]") == "TOPLEFT" and lua.eval("PocketBankFrame.point[5]") == -116,
+          "/pb reset moves the window back to the default place")
 
     if failures:
         print(f"\n{len(failures)} check(s) failed")
