@@ -4,7 +4,7 @@
 
 Addon for **WoW Forever** (Interface 16001) that shows the contents of your bank, bags and equipment, including those of the other characters on your account, without visiting the bank. A modern alternative to BankItems, which is no longer supported.
 
-> **Status:** version 0.5.0. It shows the bank, bags and equipment of every character, and in every item tooltip how many each one holds; the rest arrives in the next versions.
+> **Status:** version 0.6.0. It shows the bank, bags and equipment of every character, and in every item tooltip how many each one holds; the rest arrives in the next versions.
 
 ![PocketBank window](docs/img/capturas/PocketBank-0.2.0-personajes.png)
 
@@ -32,11 +32,12 @@ From the CurseForge app (select your Forever installation) or at https://www.cur
 6. Hover an item to see its tooltip; Shift + click links it in chat.
 7. Anywhere in the game (bags, chat, vendors, auction house…), an item's tooltip shows how many each character of your account holds, split between bank, bags and equipment, and the total when several hold it.
 
-The minimap button can be dragged around the minimap and remembers its position.
+The window can be dragged by its title or background and remembers its position; `/pb reset` puts it back. The minimap button can be dragged around the minimap and remembers its position.
 
 | Command | What it does |
 |---|---|
 | `/pb` or `/pocketbank` | Opens or closes the bank window |
+| `/pb reset` | Puts the window back in its default place |
 | `/pb version` | Shows the version |
 | `/pb debug`, `/pb frames`, `/pb paperdoll` | Diagnostics for support (saved on `/reload`) |
 

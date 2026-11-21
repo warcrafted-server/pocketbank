@@ -1,3 +1,15 @@
+## 0.6.0 (2026-11-21) — English
+
+### Added
+- **Movable window:** drag it by its title or background and put it wherever you like. It remembers its place for all your characters and always stays on screen.
+- **/pb reset** puts the window back in its default place.
+
+## 0.6.0 (2026-11-21) — Español
+
+### Añadido
+- **Ventana movible:** arrástrala por el título o el fondo y colócala donde quieras. Recuerda su sitio en todos tus personajes y nunca se sale de la pantalla.
+- **/pb reset** devuelve la ventana a su sitio por defecto.
+
 ## 0.5.0 (2026-11-20) — English
 
 ### Added

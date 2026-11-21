@@ -5,6 +5,13 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+## [0.6.0] - 2026-11-21
+
+### Añadido
+
+- La ventana se puede mover arrastrándola por el título o el fondo; recuerda su posición (esquina superior izquierda, la misma para toda la cuenta) y no se sale de la pantalla.
+- `/pb reset` devuelve la ventana a su sitio por defecto.
+
 ## [0.5.0] - 2026-11-20
 
 ### Añadido
