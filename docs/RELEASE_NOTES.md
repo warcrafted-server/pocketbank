@@ -1,3 +1,19 @@
+## 0.7.0 (2026-11-25) — English
+
+### Added
+- **Account search:** type in the search box of the window to find items by name in the bank, bags and gear of all your characters. Each item shows once with its total; hover it to see who holds it.
+
+### Fixed
+- The window background now reaches the bottom edge, without a separate strip behind your money.
+
+## 0.7.0 (2026-11-25) — Español
+
+### Añadido
+- **Buscador de la cuenta:** escribe en la caja de búsqueda de la ventana para encontrar objetos por su nombre en el banco, las bolsas y el equipo de todos tus personajes. Cada objeto sale una vez con su total; pasa el ratón por encima para ver quién lo tiene.
+
+### Corregido
+- El fondo de la ventana llega hasta el borde inferior, sin una franja aparte para el dinero.
+
 ## 0.6.0 (2026-11-21) — English
 
 ### Added

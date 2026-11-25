@@ -4,7 +4,7 @@
 
 Addon para **WoW Forever** (Interface 16001) que muestra el contenido de tu banco, bolsas y equipo, también el de los demás personajes de tu cuenta, sin tener que visitar el banco. Alternativa moderna a BankItems, que ya no tiene soporte.
 
-> **Estado:** versión 0.6.0. Muestra el banco, las bolsas y el equipo de cada personaje, y en el tooltip de cada objeto cuántos tiene cada uno; el resto llega en próximas versiones.
+> **Estado:** versión 0.7.0. Muestra el banco, las bolsas y el equipo de cada personaje, y en el tooltip de cada objeto cuántos tiene cada uno, y busca objetos en toda la cuenta; el resto llega en próximas versiones.
 
 ![Ventana de PocketBank](docs/img/capturas/PocketBank-0.2.0-personajes.png)
 
@@ -13,6 +13,8 @@ Addon para **WoW Forever** (Interface 16001) que muestra el contenido de tu banc
 ![Equipo en PocketBank](docs/img/capturas/PocketBank-0.4.0-equipo.png)
 
 ![Tooltip con lo que tiene cada personaje](docs/img/capturas/PocketBank-0.5.0-tooltip.png)
+
+![Buscador de objetos de toda la cuenta](docs/img/capturas/PocketBank-0.7.0-buscador.png)
 
 ## Requisitos
 
@@ -31,6 +33,7 @@ Desde la aplicación de CurseForge (elige tu instalación de Forever) o en https
 5. Para ver el banco, las bolsas o el equipo de otro personaje, elígelo en el desplegable de arriba de la ventana. Cada personaje tiene que haber visitado el banco (para el banco) o haber entrado al juego (para las bolsas y el equipo) una vez.
 6. Pasa el ratón por un objeto para ver su tooltip; Mayús + clic lo enlaza en el chat.
 7. En cualquier parte del juego (bolsas, chat, vendedores, subasta…), el tooltip de un objeto indica cuántos tiene cada personaje de tu cuenta, repartidos entre banco, bolsas y equipo, y el total si lo tienen varios.
+8. Para encontrar un objeto, escribe parte de su nombre en la caja de búsqueda de la ventana (vistas de banco y bolsas): salen los que coinciden en el banco, las bolsas y el equipo de todos los personajes, uno por objeto con el total (hasta 80). Cambiar de pestaña o de personaje, o cerrar la ventana, borra la búsqueda.
 
 La ventana se puede arrastrar por el título o el fondo y recuerda su posición; `/pb reset` la devuelve a su sitio. El botón del minimapa se puede arrastrar alrededor del minimapa y recuerda su posición.
 

@@ -4,7 +4,7 @@ La publicación es escalonada: una novedad probada en el juego por entrega. Cola
 
 ## Alta prioridad
 
-- Buscador y panel de opciones (hechos y probados, pendientes de publicar uno a uno).
+- Panel de opciones (hecho y probado, pendiente de publicar).
 - Borrar los datos de un personaje desde las opciones: el juego no avisa cuando se borra un personaje.
 - Correo de cada personaje con aviso de caducidad.
 
