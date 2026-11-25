@@ -5,6 +5,16 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ## [Sin publicar]
 
+## [0.7.0] - 2026-11-25
+
+### Añadido
+
+- Buscador en la ventana: busca por nombre en el banco, las bolsas y el equipo de todos los personajes de la cuenta. Muestra una casilla por objeto con el total (hasta 80); el reparto por personaje lo da el tooltip.
+
+### Corregido
+
+- El fondo de la ventana llega hasta el borde inferior, sin una franja aparte para el dinero.
+
 ## [0.6.0] - 2026-11-21
 
 ### Añadido

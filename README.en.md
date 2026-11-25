@@ -4,7 +4,7 @@
 
 Addon for **WoW Forever** (Interface 16001) that shows the contents of your bank, bags and equipment, including those of the other characters on your account, without visiting the bank. A modern alternative to BankItems, which is no longer supported.
 
-> **Status:** version 0.6.0. It shows the bank, bags and equipment of every character, and in every item tooltip how many each one holds; the rest arrives in the next versions.
+> **Status:** version 0.7.0. It shows the bank, bags and equipment of every character, and in every item tooltip how many each one holds, and searches items across the account; the rest arrives in the next versions.
 
 ![PocketBank window](docs/img/capturas/PocketBank-0.2.0-personajes.png)
 
@@ -13,6 +13,8 @@ Addon for **WoW Forever** (Interface 16001) that shows the contents of your bank
 ![Equipment in PocketBank](docs/img/capturas/PocketBank-0.4.0-equipo.png)
 
 ![Tooltip with what each character holds](docs/img/capturas/PocketBank-0.5.0-tooltip.png)
+
+![Account-wide item search](docs/img/capturas/PocketBank-0.7.0-buscador.png)
 
 ## Requirements
 
@@ -31,6 +33,7 @@ From the CurseForge app (select your Forever installation) or at https://www.cur
 5. To see another character's bank, bags or equipment, pick it in the dropdown at the top of the window. Each character must have visited the bank (for the bank) or logged in (for the bags and equipment) once.
 6. Hover an item to see its tooltip; Shift + click links it in chat.
 7. Anywhere in the game (bags, chat, vendors, auction house…), an item's tooltip shows how many each character of your account holds, split between bank, bags and equipment, and the total when several hold it.
+8. To find an item, type part of its name in the search box of the window (bank and bags views): it shows the matches from the bank, bags and equipment of every character, one per item with its total (up to 80). Changing tab or character, or closing the window, clears the search.
 
 The window can be dragged by its title or background and remembers its position; `/pb reset` puts it back. The minimap button can be dragged around the minimap and remembers its position.
 

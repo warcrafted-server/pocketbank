@@ -12,11 +12,11 @@
 - **Native look:** same frame, same slots and same layout as the game's bank, your bank bags as extra rows, the date of your last visit and your money.
 - **All your characters:** pick any character from the dropdown at the top of the window to see their bank, bags, gear and money, even when you are not logged in with them.
 - **Who has it?** Hover any item anywhere in the game and its tooltip shows how many each of your characters holds, split between bank, bags and gear, with a total.
+- **Search the whole account:** type part of a name in the search box and see every matching item from the bank, bags and gear of all your characters, with its total.
 - **Item tooltips** on hover in the window, and **Shift + click** links the item in chat.
 - English and Spanish.
 
 ## Coming next
-- Item search across all your characters.
 - An options panel.
 - Mail and guild bank.
 
@@ -42,11 +42,11 @@ Free for non-commercial use (WNCL-1.0). Source: https://github.com/warcrafted-se
 - **Aspecto nativo:** mismo marco, mismas casillas y misma disposición que el banco del juego, las bolsas del banco como filas extra, la fecha de tu última visita y tu dinero.
 - **Todos tus personajes:** elige cualquier personaje en el desplegable de arriba de la ventana para ver su banco, sus bolsas, su equipo y su dinero, aunque no estés conectado con él.
 - **¿Quién lo tiene?** Pasa el ratón por cualquier objeto, en cualquier parte del juego, y su tooltip indica cuántos tiene cada uno de tus personajes, repartidos entre banco, bolsas y equipo, con el total.
+- **Busca en toda la cuenta:** escribe parte de un nombre en la caja de búsqueda y verás todos los objetos que coinciden en el banco, las bolsas y el equipo de todos tus personajes, con su total.
 - **Tooltip de cada objeto** al pasar el ratón en la ventana, y **Mayús + clic** lo enlaza en el chat.
 - Español e inglés.
 
 ## Próximamente
-- Buscador de objetos entre todos tus personajes.
 - Panel de opciones.
 - Correo y banco de hermandad.
 
